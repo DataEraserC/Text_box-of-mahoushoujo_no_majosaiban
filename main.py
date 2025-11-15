@@ -494,10 +494,10 @@ for i in range(1,10):
 
 # 角色10-13使用特殊快捷键
 keyboard.add_hotkey('ctrl+q', lambda: switch_character(10))   # 角色10
-keyboard.add_hotkey('ctrl+w', lambda: switch_character(11))  # 角色11
-keyboard.add_hotkey('ctrl+e', lambda: switch_character(12))  # 角色12
-keyboard.add_hotkey('ctrl+r', lambda: switch_character(13))  # 角色13
-keyboard.add_hotkey('ctrl+t', lambda: switch_character(0)) 
+keyboard.add_hotkey('ctrl+e', lambda: switch_character(11))  # 角色11
+keyboard.add_hotkey('ctrl+r', lambda: switch_character(12))  # 角色12
+keyboard.add_hotkey('ctrl+t', lambda: switch_character(13))  # 角色13
+keyboard.add_hotkey('ctrl+y', lambda: switch_character(0)) 
 keyboard.add_hotkey('Tab', lambda: delate(magic_cut_folder))
 # 绑定 Ctrl+Alt+H 作为全局热键
 ok=keyboard.add_hotkey(HOTKEY,Start, suppress=BLOCK_HOTKEY or HOTKEY==SEND_HOTKEY)
