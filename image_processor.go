@@ -234,14 +234,10 @@ func drawTextOnImage(img *image.RGBA, text, fontFile string) error {
 
 	// 计算行高和总高度 (使用估算值)
 	lineHeight := int(bestFontSize * 1.15) // 15% 行间距
-	totalHeight := len(lines) * lineHeight
+	_ = len(lines) * lineHeight
 
 	// 垂直顶部对齐起始位置 (与Python版本一致)
 	startY := textBoxConfig.Position[1]
-	if totalHeight < textBoxHeight {
-		// 可以垂直居中
-		startY = textBoxConfig.Position[1] + (textBoxHeight-totalHeight)/2
-	}
 
 	// 水平左对齐起始位置 (与Python版本一致)
 	startX := textBoxConfig.Position[0]
