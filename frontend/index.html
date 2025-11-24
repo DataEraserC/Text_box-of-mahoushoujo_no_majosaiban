@@ -55,6 +55,21 @@
             color: white;
         }
         
+        .random-button {
+            padding: 8px 16px;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .random-button:hover {
+            background-color: #e68900;
+        }
+        
         .input-section {
             margin-bottom: 20px;
         }
@@ -166,7 +181,7 @@
                 <!-- 角色按钮将通过JavaScript动态添加 -->
             </div>
         </div>
-        
+
         <div class="emotion-selector">
             <h2>选择表情</h2>
             <div class="emotion-buttons" id="emotionButtons">
@@ -191,6 +206,7 @@
         let characters = [];
         let currentCharacter = null;
         let currentEmotion = null;
+        let useRandomCharacter = false; // 标记是否使用随机角色
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
@@ -203,7 +219,17 @@
             fetch('/api/characters')
                 .then(response => response.json())
                 .then(data => {
-                    characters = data;
+                    // 按照固定顺序排序角色
+                    const characterOrder = [
+                        'ema', 'hiro', 'sherri', 'hanna', 'anan', 
+                        'yuki', 'meruru', 'noa', 'reia', 'miria',
+                        'nanoka', 'mago', 'alisa', 'coco'
+                    ];
+                    
+                    characters = characterOrder
+                        .map(id => data.find(c => c.id === id))
+                        .filter(c => c !== undefined);
+                    
                     renderCharacterGrid();
                 })
                 .catch(error => {
@@ -216,6 +242,13 @@
             const grid = document.getElementById('characterGrid');
             grid.innerHTML = '';
             
+            // 添加"随机"按钮作为第一个按钮
+            const randomButton = document.createElement('div');
+            randomButton.className = 'character-button';
+            randomButton.textContent = '随机';
+            randomButton.addEventListener('click', () => selectRandomCharacter());
+            grid.appendChild(randomButton);
+            
             characters.forEach(character => {
                 const button = document.createElement('div');
                 button.className = 'character-button';
@@ -226,7 +259,7 @@
             });
             
             // 默认选择第一个角色
-            if (characters.length > 0) {
+            if (characters.length > 0 && !useRandomCharacter) {
                 selectCharacter(characters[0].id);
             }
         }
@@ -235,14 +268,37 @@
         function selectCharacter(characterId) {
             // 更新按钮状态
             document.querySelectorAll('.character-button').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.id === characterId);
+                // 第一个按钮是"随机"按钮
+                if (btn === document.querySelector('.character-button')) {
+                    btn.classList.toggle('active', false);
+                } else {
+                    btn.classList.toggle('active', btn.dataset.id === characterId);
+                }
             });
             
             // 设置当前角色
             currentCharacter = characters.find(c => c.id === characterId);
+            useRandomCharacter = false;
             
             // 加载该角色的表情
             loadEmotions(characterId);
+        }
+        
+        // 随机选择角色
+        function selectRandomCharacter() {
+            // 更新按钮状态
+            document.querySelectorAll('.character-button').forEach((btn, index) => {
+                btn.classList.toggle('active', index === 0); // 只有第一个按钮（随机）激活
+            });
+            
+            // 设置为使用随机角色
+            useRandomCharacter = true;
+            currentCharacter = null;
+            
+            // 加载默认角色的表情（用于显示表情按钮）
+            if (characters.length > 0) {
+                loadEmotions(characters[0].id);
+            }
         }
         
         // 加载表情列表
@@ -305,8 +361,8 @@
         function generateImage() {
             const textInput = document.getElementById('textInput').value.trim();
             
-            if (!currentCharacter) {
-                alert('请先选择一个角色');
+            if (!useRandomCharacter && !currentCharacter) {
+                alert('请先选择一个角色或使用随机角色');
                 return;
             }
             
@@ -325,6 +381,13 @@
                 content: textInput,
                 textInput: textInput
             };
+            
+            // 根据是否使用随机角色设置角色ID
+            if (useRandomCharacter) {
+                requestData.characterId = "random";  // 发送"random"给后端
+            } else {
+                requestData.characterId = currentCharacter.id;
+            }
             
             // 如果选择了特定表情，添加到请求中
             if (currentEmotion !== null) {

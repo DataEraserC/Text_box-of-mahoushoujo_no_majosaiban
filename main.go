@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -34,6 +35,7 @@ type GenerateRequest struct {
 	Type         string `json:"type"`
 	Content      string `json:"content"`
 	TextInput    string `json:"textInput"`
+	CharacterId  string `json:"characterId,omitempty"`
 	EmotionIndex *int   `json:"emotionIndex,omitempty"`
 }
 
@@ -333,13 +335,21 @@ func generateImage(c *gin.Context) {
 		return
 	}
 
-	mu.RLock()
+	// 确定使用的角色ID
 	characterId := currentCharacter
+	// 如果请求中指定了"random"，则随机选择角色
+	if req.CharacterId == "random" {
+		characterId = getRandomCharacter()
+	} else if req.CharacterId != "" {
+		characterId = req.CharacterId
+	}
+
+	mu.RLock()
 	_, exists := characters[characterId]
 	mu.RUnlock()
 
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "当前角色不存在"})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "角色不存在"})
 		return
 	}
 
@@ -377,7 +387,32 @@ func generateImage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"imageUrl": "/images/" + filename,
+		"character": characterId,  // 添加角色信息用于调试
 	})
+}
+
+// getRandomCharacter 随机获取一个角色
+func getRandomCharacter() string {
+	mu.RLock()
+	defer mu.RUnlock()
+	
+	// 将map转换为slice以便随机选择
+	characterIds := make([]string, 0, len(characters))
+	for id := range characters {
+		characterIds = append(characterIds, id)
+	}
+	
+	// 随机选择一个角色
+	if len(characterIds) > 0 {
+		return characterIds[rand.Intn(len(characterIds))]
+	}
+	
+	// 如果没有角色，默认返回第一个
+	if len(characterIds) > 0 {
+		return characterIds[0]
+	}
+	
+	return "sherri" // 默认角色
 }
 
 // createImageWithText 创建带文本的图片

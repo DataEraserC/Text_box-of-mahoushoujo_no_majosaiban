@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/golang/freetype"
@@ -77,8 +78,12 @@ func GenerateImage(params GenerateImageParams) (image.Image, error) {
 
 	// 构造背景和角色图片路径
 	wd, _ := os.Getwd()
+	
+	// 随机选择背景图片 (1-16)
 	backgroundIndex := rand.Intn(16) + 1
 	backgroundPath := filepath.Join(wd, "background", fmt.Sprintf("c%d.png", backgroundIndex))
+	
+	// 构造角色图片路径
 	characterImagePath := filepath.Join(wd, params.CharacterID, fmt.Sprintf("%s (%d).png", params.CharacterID, emotionIndex))
 
 	// 打开背景图片
@@ -174,17 +179,30 @@ func drawTextOnImage(img *image.RGBA, text, fontFile string) error {
 	textBoxWidth := textBoxConfig.Over[0] - textBoxConfig.Position[0]
 	textBoxHeight := textBoxConfig.Over[1] - textBoxConfig.Position[1]
 
-	// 计算合适的字体大小 (简化实现)
-	fontSize := float64(textBoxHeight) / 6
-	if fontSize > 100 {
-		fontSize = 100
+	// 加载字体并搜索最佳字体大小
+	bestFontSize := float64(1)
+	var bestFont *truetype.Font
+	
+	// 搜索最大合适的字体大小
+	for fontSize := float64(1); fontSize <= float64(textBoxHeight) && fontSize <= 145; fontSize += 1.0 {
+		font, err := loadFont(fontFile, fontSize)
+		if err != nil {
+			continue
+		}
+		
+		// 测试当前字体大小是否合适
+		if testFontSizeFit(font, text, textBoxWidth, textBoxHeight, fontSize) {
+			bestFontSize = fontSize
+			bestFont = font
+		} else {
+			break
+		}
 	}
-
-	// 加载字体
-	font, err := loadFont(fontFile, fontSize)
-	if err != nil {
-		// 如果无法加载指定字体，使用默认字体
-		font, err = loadDefaultFont(fontSize)
+	
+	// 如果无法加载指定字体，使用默认字体
+	if bestFont == nil {
+		var err error
+		bestFont, err = loadDefaultFont(bestFontSize)
 		if err != nil {
 			return err
 		}
@@ -193,28 +211,113 @@ func drawTextOnImage(img *image.RGBA, text, fontFile string) error {
 	// 创建字体绘制上下文
 	c := freetype.NewContext()
 	c.SetDPI(72)
-	c.SetFont(font)
-	c.SetFontSize(fontSize)
+	c.SetFont(bestFont)
+	c.SetFontSize(bestFontSize)
 	c.SetClip(img.Bounds())
 	c.SetDst(img)
-	c.SetSrc(image.NewUniform(color.RGBA{255, 255, 255, 255})) // 白色文字
 
-	// 简化文本绘制 - 直接在文本框中心绘制
-	textX := textBoxConfig.Position[0] + textBoxWidth/2 - len(text)*int(fontSize)/4
-	textY := textBoxConfig.Position[1] + textBoxHeight/2
+	// 文本换行处理
+	lines := wrapTextToFit(bestFont, text, textBoxWidth, bestFontSize)
 
-	// 添加阴影效果
-	shadowColor := image.NewUniform(color.RGBA{0, 0, 0, 255}) // 黑色阴影
-	c.SetSrc(shadowColor)
-	_, err = c.DrawString(text, freetype.Pt(textX+2, textY+2))
-	if err != nil {
-		return err
+	// 计算行高和总高度 (使用估算值)
+	lineHeight := int(bestFontSize * 1.15) // 15% 行间距
+	totalHeight := len(lines) * lineHeight
+
+	// 垂直顶部对齐起始位置 (与Python版本一致)
+	startY := textBoxConfig.Position[1]
+	if totalHeight < textBoxHeight {
+		// 可以垂直居中
+		startY = textBoxConfig.Position[1] + (textBoxHeight-totalHeight)/2
 	}
 
-	// 绘制主文字
-	c.SetSrc(image.NewUniform(color.RGBA{255, 255, 255, 255})) // 白色文字
-	_, err = c.DrawString(text, freetype.Pt(textX, textY))
-	return err
+	// 水平左对齐起始位置 (与Python版本一致)
+	startX := textBoxConfig.Position[0]
+
+	// 绘制每一行文本
+	for i, line := range lines {
+		y := startY + i*lineHeight + int(bestFontSize)
+
+		// 添加阴影效果
+		shadowColor := image.NewUniform(color.RGBA{0, 0, 0, 255}) // 黑色阴影
+		c.SetSrc(shadowColor)
+		_, err := c.DrawString(line, freetype.Pt(startX+2, y+2))
+		if err != nil {
+			return err
+		}
+
+		// 绘制主文字 (白色)
+		c.SetSrc(image.NewUniform(color.RGBA{255, 255, 255, 255})) // 白色文字
+		_, err = c.DrawString(line, freetype.Pt(startX, y))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// testFontSizeFit 测试指定字体大小是否适合文本框
+func testFontSizeFit(font *truetype.Font, text string, maxWidth, maxHeight int, fontSize float64) bool {
+	// 文本换行处理
+	lines := wrapTextToFit(font, text, maxWidth, fontSize)
+	
+	// 计算实际需要的高度 (使用估算值)
+	lineHeight := int(fontSize * 1.15) // 15% 行间距
+	totalHeight := len(lines) * lineHeight
+	
+	// 检查高度是否适合
+	if totalHeight > maxHeight {
+		return false
+	}
+	
+	return true
+}
+
+// wrapTextToFit 根据字体和文本框宽度自动换行
+func wrapTextToFit(font *truetype.Font, text string, maxWidth int, fontSize float64) []string {
+	// 创建临时上下文用于测量文本
+	c := freetype.NewContext()
+	c.SetDPI(72)
+	c.SetFont(font)
+	c.SetFontSize(fontSize)
+	
+	var lines []string
+	paragraphs := strings.Split(text, "\n")
+	
+	for _, paragraph := range paragraphs {
+		words := strings.Split(paragraph, " ")
+		line := ""
+		
+		for _, word := range words {
+			testLine := line
+			if testLine != "" {
+				testLine += " "
+			}
+			testLine += word
+			
+			// 测试当前行的宽度
+			width := int(c.PointToFixed(fontSize).Ceil() * len(testLine) * 96 / 72 / 2) // 粗略估算
+			if width <= maxWidth {
+				line = testLine
+			} else {
+				if line != "" {
+					lines = append(lines, line)
+				}
+				line = word
+			}
+		}
+		
+		if line != "" {
+			lines = append(lines, line)
+		}
+		
+		// 如果段落为空，添加空行
+		if paragraph == "" && (len(lines) == 0 || lines[len(lines)-1] != "") {
+			lines = append(lines, "")
+		}
+	}
+	
+	return lines
 }
 
 // drawCharacterTexts 绘制角色特定文字水印
@@ -255,10 +358,15 @@ func drawCharacterTexts(img *image.RGBA, textConfigs []TextConfig, fontFile stri
 			c.SetSrc(image.NewUniform(color.RGBA{255, 255, 255, 255})) // 默认白色
 		}
 
-		// 绘制阴影
+		// 使用与Python版本完全一致的位置
+		// Python版本中没有额外的Y轴偏移，所以我们应该使用配置中的原始位置
+		positionX := config.Position[0]
+		positionY := config.Position[1]
+
+		// 绘制阴影 (偏移2个像素，与Python版本一致)
 		shadowColor := image.NewUniform(color.RGBA{0, 0, 0, 255})
 		c.SetSrc(shadowColor)
-		_, err = c.DrawString(config.Text, freetype.Pt(config.Position[0]+2, config.Position[1]+2))
+		_, err = c.DrawString(config.Text, freetype.Pt(positionX+2, positionY+2))
 		if err != nil {
 			continue
 		}
@@ -273,7 +381,7 @@ func drawCharacterTexts(img *image.RGBA, textConfigs []TextConfig, fontFile stri
 			})
 			c.SetSrc(color)
 		}
-		_, err = c.DrawString(config.Text, freetype.Pt(config.Position[0], config.Position[1]))
+		_, err = c.DrawString(config.Text, freetype.Pt(positionX, positionY))
 		if err != nil {
 			continue
 		}
