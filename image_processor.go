@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
 	"image/color"
@@ -15,43 +16,28 @@ import (
 	"github.com/golang/freetype/truetype"
 )
 
-// 文本框坐标配置
+// TextBoxConfig 文本框坐标配置
 type TextBoxConfig struct {
 	Position [2]int // 文本框左上角坐标
 	Over     [2]int // 文本框右下角坐标
 }
 
-// 角色配置
-type CharacterConfig struct {
-	Name         string
-	EmotionCount int
-	FontFile     string
+// AppConfig 应用配置
+type AppConfig struct {
+	TextBox struct {
+		Position []int `json:"position"`
+		Over     []int `json:"over"`
+	} `json:"text_box"`
+	DefaultCharacter string `json:"default_character"`
 }
 
-// 全局配置
-var (
-	textBoxConfig = TextBoxConfig{
-		Position: [2]int{728, 355},
-		Over:     [2]int{2339, 800},
-	}
-
-	characterConfigs = map[string]CharacterConfig{
-		"ema":    {"樱羽艾玛", 8, "font3.ttf"},
-		"hiro":   {"二阶堂希罗", 6, "font3.ttf"},
-		"sherri": {"橘雪莉", 7, "font3.ttf"},
-		"hanna":  {"远野汉娜", 5, "font3.ttf"},
-		"anan":   {"夏目安安", 9, "font3.ttf"},
-		"yuki":   {"月代雪", 18, "font3.ttf"},
-		"meruru": {"冰上梅露露", 6, "font3.ttf"},
-		"noa":    {"城崎诺亚", 6, "font3.ttf"},
-		"reia":   {"莲见蕾雅", 7, "font3.ttf"},
-		"miria":  {"佐伯米莉亚", 4, "font3.ttf"},
-		"nanoka": {"黑部奈叶香", 5, "font3.ttf"},
-		"mago":   {"宝生玛格", 5, "font3.ttf"},
-		"alisa":  {"紫藤亚里沙", 6, "font3.ttf"},
-		"coco":   {"泽渡可可", 5, "font3.ttf"},
-	}
-)
+// CharacterConfig 角色配置
+type CharacterConfig struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	EmotionCount int    `json:"emotion_count"`
+	FontFile     string `json:"font"`
+}
 
 // GenerateImageParams 生成图片的参数
 type GenerateImageParams struct {
@@ -62,8 +48,98 @@ type GenerateImageParams struct {
 	TextConfigs     []TextConfig
 }
 
+var (
+	textBoxConfig    TextBoxConfig
+	characterConfigs map[string]CharacterConfig
+	appConfig        AppConfig
+)
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
+	
+	// 加载应用配置
+	loadAppConfig()
+	
+	// 加载角色配置
+	loadCharacterConfigs()
+}
+
+// loadAppConfig 加载应用配置
+func loadAppConfig() {
+	file, err := os.ReadFile("config/app.json")
+	if err != nil {
+		// 如果配置文件不存在，使用默认配置
+		textBoxConfig = TextBoxConfig{
+			Position: [2]int{728, 355},
+			Over:     [2]int{2339, 800},
+		}
+		return
+	}
+	
+	if err := json.Unmarshal(file, &appConfig); err != nil {
+		// 如果解析失败，使用默认配置
+		textBoxConfig = TextBoxConfig{
+			Position: [2]int{728, 355},
+			Over:     [2]int{2339, 800},
+		}
+		return
+	}
+	
+	// 设置文本框配置
+	textBoxConfig = TextBoxConfig{
+		Position: [2]int{appConfig.TextBox.Position[0], appConfig.TextBox.Position[1]},
+		Over:     [2]int{appConfig.TextBox.Over[0], appConfig.TextBox.Over[1]},
+	}
+}
+
+// loadCharacterConfigs 加载角色配置
+func loadCharacterConfigs() {
+	file, err := os.ReadFile("config/characters.json")
+	if err != nil {
+		// 如果配置文件不存在，使用默认配置
+		setupDefaultCharacterConfigs()
+		return
+	}
+	
+	var chars []CharacterConfig
+	if err := json.Unmarshal(file, &chars); err != nil {
+		// 如果解析失败，使用默认配置
+		setupDefaultCharacterConfigs()
+		return
+	}
+	
+	characterConfigs = make(map[string]CharacterConfig)
+	for _, char := range chars {
+		characterConfigs[char.ID] = char
+	}
+}
+
+// setupDefaultCharacterConfigs 设置默认角色配置
+func setupDefaultCharacterConfigs() {
+	characterConfigs = map[string]CharacterConfig{
+		"ema":    {"ema", "樱羽艾玛", 8, "font3.ttf"},
+		"hiro":   {"hiro", "二阶堂希罗", 6, "font3.ttf"},
+		"sherri": {"sherri", "橘雪莉", 7, "font3.ttf"},
+		"hanna":  {"hanna", "远野汉娜", 5, "font3.ttf"},
+		"anan":   {"anan", "夏目安安", 9, "font3.ttf"},
+		"yuki":   {"yuki", "月代雪", 18, "font3.ttf"},
+		"meruru": {"meruru", "冰上梅露露", 6, "font3.ttf"},
+		"noa":    {"noa", "城崎诺亚", 6, "font3.ttf"},
+		"reia":   {"reia", "莲见蕾雅", 7, "font3.ttf"},
+		"miria":  {"miria", "佐伯米莉亚", 4, "font3.ttf"},
+		"nanoka": {"nanoka", "黑部奈叶香", 5, "font3.ttf"},
+		"mago":   {"mago", "宝生玛格", 5, "font3.ttf"},
+		"alisa":  {"alisa", "紫藤亚里沙", 6, "font3.ttf"},
+		"coco":   {"coco", "泽渡可可", 5, "font3.ttf"},
+	}
+}
+
+// getDefaultCharacter 获取默认角色ID
+func getDefaultCharacter() string {
+	if appConfig.DefaultCharacter != "" {
+		return appConfig.DefaultCharacter
+	}
+	return "sherri" // 默认角色
 }
 
 // GenerateImage 生成完整的魔法少女裁判图片

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "ema",
+    "name": "樱羽艾玛",
+    "emotion_count": 8,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "hiro",
+    "name": "二阶堂希罗",
+    "emotion_count": 6,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "sherri",
+    "name": "橘雪莉",
+    "emotion_count": 7,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "hanna",
+    "name": "远野汉娜",
+    "emotion_count": 5,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "anan",
+    "name": "夏目安安",
+    "emotion_count": 9,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "yuki",
+    "name": "月代雪",
+    "emotion_count": 18,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "meruru",
+    "name": "冰上梅露露",
+    "emotion_count": 6,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "noa",
+    "name": "城崎诺亚",
+    "emotion_count": 6,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "reia",
+    "name": "莲见蕾雅",
+    "emotion_count": 7,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "miria",
+    "name": "佐伯米莉亚",
+    "emotion_count": 4,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "nanoka",
+    "name": "黑部奈叶香",
+    "emotion_count": 5,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "mago",
+    "name": "宝生玛格",
+    "emotion_count": 5,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "alisa",
+    "name": "紫藤亚里沙",
+    "emotion_count": 6,
+    "font": "font3.ttf"
+  },
+  {
+    "id": "coco",
+    "name": "泽渡可可",
+    "emotion_count": 5,
+    "font": "font3.ttf"
+  }
+]

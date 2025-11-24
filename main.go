@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
 	"image/png"
@@ -18,7 +19,7 @@ import (
 type Character struct {
 	ID           string `json:"id"`
 	Name         string `json:"name"`
-	EmotionCount int    `json:"emotionCount"`
+	EmotionCount int    `json:"emotion_count"`
 	Font         string `json:"font"`
 }
 
@@ -26,18 +27,18 @@ type Character struct {
 type TextConfig struct {
 	Text       string `json:"text"`
 	Position   []int  `json:"position"`
-	FontColor  []int  `json:"fontColor"`
-	FontSize   int    `json:"fontSize"`
+	FontColor  []int  `json:"font_color"`
+	FontSize   int    `json:"font_size"`
 }
 
 // GenerateRequest 生成图片的请求
 type GenerateRequest struct {
-	Type          string `json:"type"`
-	Content       string `json:"content"`
-	TextInput     string `json:"textInput"`
-	CharacterId   string `json:"characterId,omitempty"`
-	EmotionIndex  *int   `json:"emotionIndex,omitempty"`
-	BackgroundIndex *int  `json:"backgroundIndex,omitempty"`
+	Type            string `json:"type"`
+	Content         string `json:"content"`
+	TextInput       string `json:"textInput"`
+	CharacterId     string `json:"characterId,omitempty"`
+	EmotionIndex    *int   `json:"emotionIndex,omitempty"`
+	BackgroundIndex *int   `json:"backgroundIndex,omitempty"`
 }
 
 // Emotion 表情信息
@@ -46,102 +47,65 @@ type Emotion struct {
 	Name string `json:"name"`
 }
 
+// Background 背景信息
+type Background struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 var (
 	characters  map[string]Character
 	textConfigs map[string][]TextConfig
+	backgrounds []Background
 	mu          sync.RWMutex
 )
 
 func init() {
-	// 初始化角色信息
-	characters = map[string]Character{
-		"ema": {
-			ID:           "ema",
-			Name:         "樱羽艾玛",
-			EmotionCount: 8,
-			Font:         "font3.ttf",
-		},
-		"hiro": {
-			ID:           "hiro",
-			Name:         "二阶堂希罗",
-			EmotionCount: 6,
-			Font:         "font3.ttf",
-		},
-		"sherri": {
-			ID:           "sherri",
-			Name:         "橘雪莉",
-			EmotionCount: 7,
-			Font:         "font3.ttf",
-		},
-		"hanna": {
-			ID:           "hanna",
-			Name:         "远野汉娜",
-			EmotionCount: 5,
-			Font:         "font3.ttf",
-		},
-		"anan": {
-			ID:           "anan",
-			Name:         "夏目安安",
-			EmotionCount: 9,
-			Font:         "font3.ttf",
-		},
-		"yuki": {
-			ID:           "yuki",
-			Name:         "月代雪",
-			EmotionCount: 18,
-			Font:         "font3.ttf",
-		},
-		"meruru": {
-			ID:           "meruru",
-			Name:         "冰上梅露露",
-			EmotionCount: 6,
-			Font:         "font3.ttf",
-		},
-		"noa": {
-			ID:           "noa",
-			Name:         "城崎诺亚",
-			EmotionCount: 6,
-			Font:         "font3.ttf",
-		},
-		"reia": {
-			ID:           "reia",
-			Name:         "莲见蕾雅",
-			EmotionCount: 7,
-			Font:         "font3.ttf",
-		},
-		"miria": {
-			ID:           "miria",
-			Name:         "佐伯米莉亚",
-			EmotionCount: 4,
-			Font:         "font3.ttf",
-		},
-		"nanoka": {
-			ID:           "nanoka",
-			Name:         "黑部奈叶香",
-			EmotionCount: 5,
-			Font:         "font3.ttf",
-		},
-		"mago": {
-			ID:           "mago",
-			Name:         "宝生玛格",
-			EmotionCount: 5,
-			Font:         "font3.ttf",
-		},
-		"alisa": {
-			ID:           "alisa",
-			Name:         "紫藤亚里沙",
-			EmotionCount: 6,
-			Font:         "font3.ttf",
-		},
-		"coco": {
-			ID:           "coco",
-			Name:         "泽渡可可",
-			EmotionCount: 5,
-			Font:         "font3.ttf",
-		},
-	}
-
+	// 加载应用配置
+	loadAppConfig()
+	
+	// 加载角色配置
+	loadCharacters()
+	
+	// 加载背景配置
+	loadBackgrounds()
+	
 	// 初始化文字配置
+	initTextConfigs()
+}
+
+// loadCharacters 加载角色配置
+func loadCharacters() {
+	file, err := os.ReadFile("config/characters.json")
+	if err != nil {
+		panic(fmt.Sprintf("无法读取角色配置文件: %v", err))
+	}
+	
+	var chars []Character
+	if err := json.Unmarshal(file, &chars); err != nil {
+		panic(fmt.Sprintf("无法解析角色配置文件: %v", err))
+	}
+	
+	characters = make(map[string]Character)
+	for _, char := range chars {
+		characters[char.ID] = char
+	}
+}
+
+// loadBackgrounds 加载背景配置
+func loadBackgrounds() {
+	file, err := os.ReadFile("config/backgrounds.json")
+	if err != nil {
+		panic(fmt.Sprintf("无法读取背景配置文件: %v", err))
+	}
+	
+	if err := json.Unmarshal(file, &backgrounds); err != nil {
+		panic(fmt.Sprintf("无法解析背景配置文件: %v", err))
+	}
+}
+
+// initTextConfigs 初始化文字配置
+func initTextConfigs() {
 	textConfigs = map[string][]TextConfig{
 		"nanoka": {
 			{Text: "黑", Position: []int{759, 63}, FontColor: []int{131, 143, 147}, FontSize: 196},
@@ -245,6 +209,9 @@ func main() {
 		api.GET("/characters/current", getCurrentCharacter) // 保持这个接口用于获取默认角色
 		api.GET("/characters/:characterId/emotions", getEmotions)
 
+		// 背景相关API
+		api.GET("/backgrounds", getBackgrounds)
+
 		// 图片生成API
 		api.POST("/generate", generateImage)
 	}
@@ -262,10 +229,15 @@ func getCharacters(c *gin.Context) {
 	c.JSON(http.StatusOK, chars)
 }
 
-// getCurrentCharacter 获取默认角色（橘雪莉）
+// getCurrentCharacter 获取默认角色
 func getCurrentCharacter(c *gin.Context) {
-	// 总是返回默认角色橘雪莉，不保存状态
-	char := characters["sherri"]
+	// 总是返回默认角色，不保存状态
+	defaultCharacter := getDefaultCharacter()
+	char, exists := characters[defaultCharacter]
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "默认角色不存在"})
+		return
+	}
 	c.JSON(http.StatusOK, char)
 }
 
@@ -290,6 +262,11 @@ func getEmotions(c *gin.Context) {
 	c.JSON(http.StatusOK, emotions)
 }
 
+// getBackgrounds 获取背景列表
+func getBackgrounds(c *gin.Context) {
+	c.JSON(http.StatusOK, backgrounds)
+}
+
 // generateImage 生成图片
 func generateImage(c *gin.Context) {
 	var req GenerateRequest
@@ -298,8 +275,8 @@ func generateImage(c *gin.Context) {
 		return
 	}
 
-	// 确定使用的角色ID，默认为橘雪莉
-	characterId := "sherri"
+	// 确定使用的角色ID，默认为配置文件中指定的默认角色
+	characterId := getDefaultCharacter()
 	// 如果请求中指定了"random"，则随机选择角色
 	if req.CharacterId == "random" {
 		characterId = getRandomCharacter()
@@ -370,12 +347,8 @@ func getRandomCharacter() string {
 		return characterIds[rand.Intn(len(characterIds))]
 	}
 	
-	// 如果没有角色，默认返回第一个
-	if len(characterIds) > 0 {
-		return characterIds[0]
-	}
-	
-	return "sherri" // 默认角色
+	// 如果没有角色，返回默认角色
+	return getDefaultCharacter()
 }
 
 // createImageWithText 创建带文本的图片
