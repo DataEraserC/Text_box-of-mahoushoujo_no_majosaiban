@@ -53,10 +53,12 @@ Response:
 POST /api/generate
 Request:
 {
-  "type": "text|image",           // 类型：文本或图片
-  "content": "示例文本内容",       // 当type为text时的文本内容
+  "type": "text",                 // 类型：目前只支持text
+  "content": "示例文本内容",       // 文本内容
+  "textInput": "输入的文本内容",    // 用户输入的文本（冗余字段，与content相同）
+  "characterId": "sherri",        // 角色ID（可选，默认为当前选择的角色）
   "emotionIndex": 1,              // 表情索引（可选，默认随机）
-  "textInput": "输入的文本内容"     // 用户输入的文本
+  "backgroundIndex": 1            // 背景索引（可选，默认随机）
 }
 
 Response:

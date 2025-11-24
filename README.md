@@ -119,20 +119,33 @@
 
 这个项目是将原有的 Python 版本重构为 Go 语言实现的 Web 应用，采用前后端分离架构。
 
+<div align="center">
+
+## 🎭魔法少女的魔女裁判文本框脚本
+
+<img width="1200" height="390" alt="5f10f4239bc8a82812e505fd0c4f5567" src="https://github.com/user-attachments/assets/6fb46a8d-4fc4-4d10-80a0-ed21fbb428bf" />
+
+<img width="1200" height="390" alt="96038673678af657e937d20617322e81" src="https://github.com/user-attachments/assets/847c331e-9274-4b60-9b42-af0a80265391" />
+
+</div>
+
+一个基于Web的自动化表情包生成工具，能够快速生成带有自定义文本的魔法少女的魔女裁判文本框图片。[灵感来源与代码参考](https://github.com/MarkCup-Official/Anan-s-Sketchbook-Chat-Box)
+
 ## 功能特点
 
-- 基于 Web 的用户界面，可在浏览器中使用
-- 支持多种魔法少女角色选择
-- 支持不同表情选择
-- 文本自适应排版
-- 前后端分离架构
-- Go 语言实现后端服务
+- 🎨 多角色支持 - 内置14个角色，每个角色多个表情差分
+- ⚡ Web界面操作 - 基于浏览器的用户界面，操作简单直观
+- 🖼️ 智能合成 - 自动合成背景与角色图片
+- 📝 文本嵌入 - 自动在表情图片上添加文本，支持文本自适应排版
+- 🎯 随机算法 - 智能避免重复表情
+- 🌟 角色专属水印 - 每个角色都有专属的名字水印
+- 🎨 背景选择 - 支持16种不同背景选择
 
 ## 技术栈
 
 - 后端: Go + Gin 框架
-- 前端: HTML + JavaScript
-- 图片处理: Go 标准库 image 包
+- 前端: HTML + JavaScript + CSS
+- 图片处理: Go 标准库 image 包 + freetype
 
 ## 安装和运行
 
@@ -144,43 +157,16 @@
    ```
 4. 运行服务:
    ```
-   go run main.go
+   go run main.go image_processor.go
    ```
 5. 在浏览器中访问: http://localhost:8080/frontend/index.html
-
-## API 接口
-
-### 获取角色列表
-```
-GET /api/characters
-```
-
-### 设置当前角色
-```
-POST /api/characters/current
-```
-
-### 获取当前角色
-```
-GET /api/characters/current
-```
-
-### 获取角色表情列表
-```
-GET /api/characters/{characterId}/emotions
-```
-
-### 生成图片
-```
-POST /api/generate
-```
 
 ## 目录结构
 
 ```
 .
-├── background/           # 背景图片目录
-├── {character}/          # 各角色图片目录
+├── background/           # 背景图片目录 (16种背景)
+├── {character}/          # 各角色图片目录 (14个角色)
 ├── frontend/             # 前端页面
 │   └── index.html
 ├── images/               # 生成的图片存储目录
@@ -188,6 +174,7 @@ POST /api/generate
 ├── font2.ttf
 ├── font3.ttf
 ├── main.go               # 主程序
+├── image_processor.go    # 图片处理逻辑
 ├── go.mod
 ├── go.sum
 └── README.md
@@ -198,15 +185,72 @@ POST /api/generate
 1. 打开浏览器访问前端页面
 2. 选择一个角色
 3. 选择表情（可选，默认随机）
-4. 在文本框中输入要显示的文本
-5. 点击"生成图片"按钮
-6. 预览生成的图片并下载
+4. 选择背景（可选，默认随机）
+5. 在文本框中输入要显示的文本
+6. 点击"生成图片"按钮
+7. 预览生成的图片并下载
 
-## 开发计划
+## API 接口
 
-- [x] 实现基本的前后端架构
-- [x] 实现角色选择功能
-- [x] 实现表情选择功能
-- [ ] 实现完整的图片处理逻辑（与原Python版本功能一致）
-- [ ] 优化前端界面和用户体验
-- [ ] 添加更多自定义选项
+详细API接口文档请参考 [api_design.md](api_design.md) 文件
+
+### 主要API接口
+
+#### 获取角色列表
+```
+GET /api/characters
+```
+
+#### 设置当前角色
+```
+POST /api/characters/current
+```
+
+#### 获取当前角色
+```
+GET /api/characters/current
+```
+
+#### 获取角色表情列表
+```
+GET /api/characters/{characterId}/emotions
+```
+
+#### 生成图片
+```
+POST /api/generate
+```
+
+## 角色列表
+
+1. 樱羽艾玛 (ema)
+2. 二阶堂希罗 (hiro)
+3. 橘雪莉 (sherri)
+4. 远野汉娜 (hanna)
+5. 夏目安安 (anan)
+6. 月代雪 (yuki)
+7. 冰上梅露露 (meruru)
+8. 城崎诺亚 (noa)
+9. 莲见蕾雅 (reia)
+10. 佐伯米莉亚 (miria)
+11. 黑部奈叶香 (nanoka)
+12. 宝生玛格 (mago)
+13. 紫藤亚里沙 (alisa)
+14. 泽渡可可 (coco)
+
+## 许可证
+
+本项目基于MIT协议传播，仅供个人学习交流使用，不拥有相关素材的版权。进行分发时应注意不违反素材版权与官方二次创造协定。
+
+## 结语
+
+受B站上MarkCup做的夏目安安传话筒启发，以夏目安安传话筒为源代码编写了这样一个文本框脚本。
+由于本人是初学者，第一次尝试写这种代码，有许多地方尚有改进的余地，望多多包含。
+
+<div align="right">
+  
+### 以上. 柊回文————2025.11.15
+</div>
+```
+
+```
