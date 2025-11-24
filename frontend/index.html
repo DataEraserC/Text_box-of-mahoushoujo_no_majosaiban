@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔法少女裁判 - 文本框生成器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        
+        .character-selector {
+            margin-bottom: 20px;
+        }
+        
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .character-button {
+            padding: 10px;
+            background-color: #eee;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .character-button:hover {
+            background-color: #ddd;
+        }
+        
+        .character-button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .input-section {
+            margin-bottom: 20px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        
+        .emotion-selector {
+            margin: 15px 0;
+        }
+        
+        .emotion-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .emotion-button {
+            padding: 8px 12px;
+            background-color: #eee;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .emotion-button:hover {
+            background-color: #ddd;
+        }
+        
+        .emotion-button.active {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .generate-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        
+        .generate-button:hover {
+            background-color: #45a049;
+        }
+        
+        .result-image {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .result-image img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+        
+        .instructions {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>魔法少女裁判 - 文本框生成器</h1>
+        
+        <div class="instructions">
+            <h3>使用说明:</h3>
+            <ul>
+                <li>选择一个角色</li>
+                <li>选择表情（可选，默认随机）</li>
+                <li>在文本框中输入要显示的文本</li>
+                <li>点击"生成图片"按钮</li>
+                <li>预览生成的图片并下载</li>
+            </ul>
+        </div>
+        
+        <div class="character-selector">
+            <h2>选择角色</h2>
+            <div class="character-grid" id="characterGrid">
+                <!-- 角色按钮将通过JavaScript动态添加 -->
+            </div>
+        </div>
+        
+        <div class="emotion-selector">
+            <h2>选择表情</h2>
+            <div class="emotion-buttons" id="emotionButtons">
+                <!-- 表情按钮将通过JavaScript动态添加 -->
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <h2>输入文本</h2>
+            <textarea id="textInput" placeholder="请输入要显示在图片上的文本..."></textarea>
+        </div>
+        
+        <button class="generate-button" id="generateButton">生成图片</button>
+        
+        <div class="result-image" id="resultImage">
+            <!-- 生成的图片将在这里显示 -->
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let characters = [];
+        let currentCharacter = null;
+        let currentEmotion = null;
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCharacters();
+            setupEventListeners();
+        });
+        
+        // 加载角色列表
+        function loadCharacters() {
+            fetch('/api/characters')
+                .then(response => response.json())
+                .then(data => {
+                    characters = data;
+                    renderCharacterGrid();
+                })
+                .catch(error => {
+                    console.error('加载角色列表失败:', error);
+                });
+        }
+        
+        // 渲染角色选择网格
+        function renderCharacterGrid() {
+            const grid = document.getElementById('characterGrid');
+            grid.innerHTML = '';
+            
+            characters.forEach(character => {
+                const button = document.createElement('div');
+                button.className = 'character-button';
+                button.textContent = getCharacterDisplayName(character.id);
+                button.dataset.id = character.id;
+                button.addEventListener('click', () => selectCharacter(character.id));
+                grid.appendChild(button);
+            });
+            
+            // 默认选择第一个角色
+            if (characters.length > 0) {
+                selectCharacter(characters[0].id);
+            }
+        }
+        
+        // 选择角色
+        function selectCharacter(characterId) {
+            // 更新按钮状态
+            document.querySelectorAll('.character-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.id === characterId);
+            });
+            
+            // 设置当前角色
+            currentCharacter = characters.find(c => c.id === characterId);
+            
+            // 加载该角色的表情
+            loadEmotions(characterId);
+        }
+        
+        // 加载表情列表
+        function loadEmotions(characterId) {
+            fetch(`/api/characters/${characterId}/emotions`)
+                .then(response => response.json())
+                .then(emotions => {
+                    renderEmotionButtons(emotions);
+                })
+                .catch(error => {
+                    console.error('加载表情列表失败:', error);
+                });
+        }
+        
+        // 渲染表情按钮
+        function renderEmotionButtons(emotions) {
+            const container = document.getElementById('emotionButtons');
+            container.innerHTML = '';
+            
+            // 添加"随机"选项
+            const randomButton = document.createElement('div');
+            randomButton.className = 'emotion-button active';
+            randomButton.textContent = '随机';
+            randomButton.addEventListener('click', () => selectEmotion(null));
+            container.appendChild(randomButton);
+            
+            emotions.forEach(emotion => {
+                const button = document.createElement('div');
+                button.className = 'emotion-button';
+                button.textContent = `表情${emotion.id}`;
+                button.dataset.id = emotion.id;
+                button.addEventListener('click', () => selectEmotion(emotion.id));
+                container.appendChild(button);
+            });
+        }
+        
+        // 选择表情
+        function selectEmotion(emotionId) {
+            currentEmotion = emotionId;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.emotion-button').forEach(btn => {
+                if (emotionId === null) {
+                    // 随机选择，只有"随机"按钮激活
+                    btn.classList.toggle('active', btn.textContent === '随机');
+                } else {
+                    btn.classList.toggle('active', 
+                        btn.textContent === '随机' ? false : 
+                        parseInt(btn.dataset.id) === emotionId);
+                }
+            });
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            document.getElementById('generateButton').addEventListener('click', generateImage);
+        }
+        
+        // 生成图片
+        function generateImage() {
+            const textInput = document.getElementById('textInput').value.trim();
+            
+            if (!currentCharacter) {
+                alert('请先选择一个角色');
+                return;
+            }
+            
+            if (!textInput) {
+                alert('请输入文本内容');
+                return;
+            }
+            
+            // 显示加载状态
+            const resultContainer = document.getElementById('resultImage');
+            resultContainer.innerHTML = '<div class="loading">正在生成图片...</div>';
+            
+            // 准备请求数据
+            const requestData = {
+                type: 'text',
+                content: textInput,
+                textInput: textInput
+            };
+            
+            // 如果选择了特定表情，添加到请求中
+            if (currentEmotion !== null) {
+                requestData.emotionIndex = currentEmotion;
+            }
+            
+            // 发送生成请求
+            fetch('/api/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 显示生成的图片
+                    resultContainer.innerHTML = `
+                        <img src="${data.imageUrl}" alt="生成的图片">
+                        <p><a href="${data.imageUrl}" download>下载图片</a></p>
+                    `;
+                } else {
+                    resultContainer.innerHTML = `<div class="error">生成失败: ${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('生成图片失败:', error);
+                resultContainer.innerHTML = '<div class="error">生成图片时发生错误</div>';
+            });
+        }
+        
+        // 获取角色显示名称
+        function getCharacterDisplayName(characterId) {
+            const names = {
+                'ema': '樱羽艾玛',
+                'hiro': '二阶堂希罗',
+                'sherri': '橘雪莉',
+                'hanna': '远野汉娜',
+                'anan': '夏目安安',
+                'yuki': '月代雪',
+                'meruru': '冰上梅露露',
+                'noa': '城崎诺亚',
+                'reia': '莲见蕾雅',
+                'miria': '佐伯米莉亚',
+                'nanoka': '黑部奈叶香',
+                'mago': '宝生玛格',
+                'alisa': '紫藤亚里沙',
+                'coco': '泽渡可可'
+            };
+            
+            return names[characterId] || characterId;
+        }
+    </script>
+</body>
+</html>
