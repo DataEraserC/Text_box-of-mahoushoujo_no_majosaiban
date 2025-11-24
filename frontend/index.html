@@ -83,18 +83,18 @@
             resize: vertical;
         }
         
-        .emotion-selector {
+        .emotion-selector, .background-selector {
             margin: 15px 0;
         }
         
-        .emotion-buttons {
+        .emotion-buttons, .background-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin-top: 10px;
         }
         
-        .emotion-button {
+        .emotion-button, .background-button {
             padding: 8px 12px;
             background-color: #eee;
             border: 1px solid #ddd;
@@ -102,11 +102,11 @@
             cursor: pointer;
         }
         
-        .emotion-button:hover {
+        .emotion-button:hover, .background-button:hover {
             background-color: #ddd;
         }
         
-        .emotion-button.active {
+        .emotion-button.active, .background-button.active {
             background-color: #2196F3;
             color: white;
         }
@@ -189,6 +189,13 @@
             </div>
         </div>
         
+        <div class="background-selector">
+            <h2>选择背景</h2>
+            <div class="background-buttons" id="backgroundButtons">
+                <!-- 背景按钮将通过JavaScript动态添加 -->
+            </div>
+        </div>
+        
         <div class="input-section">
             <h2>输入文本</h2>
             <textarea id="textInput" placeholder="请输入要显示在图片上的文本..."></textarea>
@@ -206,12 +213,14 @@
         let characters = [];
         let currentCharacter = null;
         let currentEmotion = null;
+        let currentBackground = null;
         let useRandomCharacter = false; // 标记是否使用随机角色
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
             loadCharacters();
             setupEventListeners();
+            renderBackgroundButtons(); // 渲染背景选择按钮
         });
         
         // 加载角色列表
@@ -352,6 +361,46 @@
             });
         }
         
+        // 渲染背景选择按钮
+        function renderBackgroundButtons() {
+            const container = document.getElementById('backgroundButtons');
+            container.innerHTML = '';
+            
+            // 添加"随机"选项
+            const randomButton = document.createElement('div');
+            randomButton.className = 'background-button active';
+            randomButton.textContent = '随机';
+            randomButton.addEventListener('click', () => selectBackground(null));
+            container.appendChild(randomButton);
+            
+            // 添加16个背景选项
+            for (let i = 1; i <= 16; i++) {
+                const button = document.createElement('div');
+                button.className = 'background-button';
+                button.textContent = `背景${i}`;
+                button.dataset.id = i;
+                button.addEventListener('click', () => selectBackground(i));
+                container.appendChild(button);
+            }
+        }
+        
+        // 选择背景
+        function selectBackground(backgroundId) {
+            currentBackground = backgroundId;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.background-button').forEach(btn => {
+                if (backgroundId === null) {
+                    // 随机选择，只有"随机"按钮激活
+                    btn.classList.toggle('active', btn.textContent === '随机');
+                } else {
+                    btn.classList.toggle('active', 
+                        btn.textContent === '随机' ? false : 
+                        parseInt(btn.dataset.id) === backgroundId);
+                }
+            });
+        }
+        
         // 设置事件监听器
         function setupEventListeners() {
             document.getElementById('generateButton').addEventListener('click', generateImage);
@@ -392,6 +441,11 @@
             // 如果选择了特定表情，添加到请求中
             if (currentEmotion !== null) {
                 requestData.emotionIndex = currentEmotion;
+            }
+            
+            // 如果选择了特定背景，添加到请求中
+            if (currentBackground !== null) {
+                requestData.backgroundIndex = currentBackground;
             }
             
             // 发送生成请求

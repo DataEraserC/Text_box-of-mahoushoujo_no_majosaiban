@@ -55,10 +55,11 @@ var (
 
 // GenerateImageParams 生成图片的参数
 type GenerateImageParams struct {
-	CharacterID  string
-	Text         string
-	EmotionIndex *int
-	TextConfigs  []TextConfig
+	CharacterID     string
+	Text            string
+	EmotionIndex    *int
+	BackgroundIndex *int
+	TextConfigs     []TextConfig
 }
 
 func init() {
@@ -76,13 +77,15 @@ func GenerateImage(params GenerateImageParams) (image.Image, error) {
 	// 确定使用的表情索引
 	emotionIndex := getRandomEmotionIndex(charConfig.EmotionCount, params.EmotionIndex)
 
+	// 确定使用的背景索引
+	backgroundIndex := getRandomBackgroundIndex(params.BackgroundIndex)
+
 	// 构造背景和角色图片路径
 	wd, _ := os.Getwd()
-
-	// 随机选择背景图片 (1-16)
-	backgroundIndex := rand.Intn(16) + 1
+	
+	// 使用指定或随机的背景图片
 	backgroundPath := filepath.Join(wd, "background", fmt.Sprintf("c%d.png", backgroundIndex))
-
+	
 	// 构造角色图片路径
 	characterImagePath := filepath.Join(wd, params.CharacterID, fmt.Sprintf("%s (%d).png", params.CharacterID, emotionIndex))
 
@@ -111,7 +114,7 @@ func GenerateImage(params GenerateImageParams) (image.Image, error) {
 	// 绘制角色图片 (在固定位置)
 	characterBounds := characterImg.Bounds()
 	overlayPosition := image.Point{0, 134} // 与原Python代码保持一致
-	draw.Draw(resultImg,
+	draw.Draw(resultImg, 
 		image.Rectangle{
 			Min: overlayPosition,
 			Max: image.Point{
@@ -119,8 +122,8 @@ func GenerateImage(params GenerateImageParams) (image.Image, error) {
 				Y: overlayPosition.Y + characterBounds.Dy(),
 			},
 		},
-		characterImg,
-		characterBounds.Min,
+		characterImg, 
+		characterBounds.Min, 
 		draw.Over)
 
 	// 在文本框区域内绘制文本
@@ -147,6 +150,16 @@ func getRandomEmotionIndex(emotionCount int, specifiedIndex *int) int {
 
 	// 随机选择一个表情
 	return rand.Intn(emotionCount) + 1
+}
+
+// getRandomBackgroundIndex 获取随机或指定的背景索引
+func getRandomBackgroundIndex(specifiedIndex *int) int {
+	if specifiedIndex != nil && *specifiedIndex >= 1 && *specifiedIndex <= 16 {
+		return *specifiedIndex
+	}
+	
+	// 随机选择一个背景 (1-16)
+	return rand.Intn(16) + 1
 }
 
 // openImage 打开图片文件

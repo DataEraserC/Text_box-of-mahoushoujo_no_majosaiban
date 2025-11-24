@@ -32,11 +32,12 @@ type TextConfig struct {
 
 // GenerateRequest 生成图片的请求
 type GenerateRequest struct {
-	Type         string `json:"type"`
-	Content      string `json:"content"`
-	TextInput    string `json:"textInput"`
-	CharacterId  string `json:"characterId,omitempty"`
-	EmotionIndex *int   `json:"emotionIndex,omitempty"`
+	Type          string `json:"type"`
+	Content       string `json:"content"`
+	TextInput     string `json:"textInput"`
+	CharacterId   string `json:"characterId,omitempty"`
+	EmotionIndex  *int   `json:"emotionIndex,omitempty"`
+	BackgroundIndex *int  `json:"backgroundIndex,omitempty"`
 }
 
 // Emotion 表情信息
@@ -364,7 +365,7 @@ func generateImage(c *gin.Context) {
 	filepath := filepath.Join(outputDir, filename)
 
 	// 生成图片
-	img, err := createImageWithText(characterId, req.TextInput, req.EmotionIndex)
+	img, err := createImageWithText(characterId, req.TextInput, req.EmotionIndex, req.BackgroundIndex)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "生成图片失败: " + err.Error()})
 		return
@@ -416,7 +417,7 @@ func getRandomCharacter() string {
 }
 
 // createImageWithText 创建带文本的图片
-func createImageWithText(characterId, text string, emotionIndex *int) (image.Image, error) {
+func createImageWithText(characterId, text string, emotionIndex *int, backgroundIndex *int) (image.Image, error) {
 	// 使用新的图片处理逻辑
 	
 	// 获取当前角色的文字配置
@@ -426,10 +427,11 @@ func createImageWithText(characterId, text string, emotionIndex *int) (image.Ima
 	
 	// 构造图片生成参数
 	params := GenerateImageParams{
-		CharacterID:  characterId,
-		Text:         text,
-		EmotionIndex: emotionIndex,
-		TextConfigs:  textConfigs,
+		CharacterID:     characterId,
+		Text:            text,
+		EmotionIndex:    emotionIndex,
+		BackgroundIndex: backgroundIndex,
+		TextConfigs:     textConfigs,
 	}
 	
 	// 生成图片
