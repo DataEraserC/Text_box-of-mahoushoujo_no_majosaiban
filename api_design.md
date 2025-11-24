@@ -21,22 +21,7 @@ Response:
 ]
 ```
 
-### 2. 设置当前角色
-```
-POST /api/characters/current
-Request:
-{
-  "characterId": "sherri"
-}
-
-Response:
-{
-  "success": true,
-  "message": "已切换到角色: 橘雪莉"
-}
-```
-
-### 3. 获取当前角色
+### 2. 获取默认角色
 ```
 GET /api/characters/current
 Response:
@@ -48,7 +33,7 @@ Response:
 }
 ```
 
-### 4. 生成图片
+### 3. 生成图片
 ```
 POST /api/generate
 Request:
@@ -56,7 +41,7 @@ Request:
   "type": "text",                 // 类型：目前只支持text
   "content": "示例文本内容",       // 文本内容
   "textInput": "输入的文本内容",    // 用户输入的文本（冗余字段，与content相同）
-  "characterId": "sherri",        // 角色ID（可选，默认为当前选择的角色）
+  "characterId": "sherri",        // 角色ID（可选，默认为橘雪莉，可设置为"random"表示随机）
   "emotionIndex": 1,              // 表情索引（可选，默认随机）
   "backgroundIndex": 1            // 背景索引（可选，默认随机）
 }
@@ -68,7 +53,7 @@ Response:
 }
 ```
 
-### 5. 获取角色表情列表
+### 4. 获取角色表情列表
 ```
 GET /api/characters/{characterId}/emotions
 Response:
@@ -80,3 +65,11 @@ Response:
   ...
 ]
 ```
+
+## 无状态设计说明
+
+后端API采用无状态设计，不保存用户选择的状态信息。所有需要的参数都通过API请求传递：
+
+1. 默认角色为橘雪莉（"sherri"）
+2. 如果需要随机角色，将characterId设置为"random"
+3. 所有选择都在generate接口中通过参数传递

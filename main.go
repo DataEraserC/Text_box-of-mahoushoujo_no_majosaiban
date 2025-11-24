@@ -47,10 +47,9 @@ type Emotion struct {
 }
 
 var (
-	currentCharacter string
-	characters       map[string]Character
-	textConfigs      map[string][]TextConfig
-	mu               sync.RWMutex
+	characters  map[string]Character
+	textConfigs map[string][]TextConfig
+	mu          sync.RWMutex
 )
 
 func init() {
@@ -229,9 +228,6 @@ func init() {
 			{Text: "", Position: []int{0, 0}, FontColor: []int{255, 255, 255}, FontSize: 1},
 		},
 	}
-
-	// 默认角色为橘雪莉
-	currentCharacter = "sherri"
 }
 
 func main() {
@@ -246,8 +242,7 @@ func main() {
 	{
 		// 角色相关API
 		api.GET("/characters", getCharacters)
-		api.POST("/characters/current", setCurrentCharacter)
-		api.GET("/characters/current", getCurrentCharacter)
+		api.GET("/characters/current", getCurrentCharacter) // 保持这个接口用于获取默认角色
 		api.GET("/characters/:characterId/emotions", getEmotions)
 
 		// 图片生成API
@@ -267,43 +262,10 @@ func getCharacters(c *gin.Context) {
 	c.JSON(http.StatusOK, chars)
 }
 
-// setCurrentCharacter 设置当前角色
-func setCurrentCharacter(c *gin.Context) {
-	var req struct {
-		CharacterID string `json:"characterId"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "请求参数错误"})
-		return
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	if _, exists := characters[req.CharacterID]; !exists {
-		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "角色不存在"})
-		return
-	}
-
-	currentCharacter = req.CharacterID
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": fmt.Sprintf("已切换到角色: %s", characters[req.CharacterID].Name),
-	})
-}
-
-// getCurrentCharacter 获取当前角色
+// getCurrentCharacter 获取默认角色（橘雪莉）
 func getCurrentCharacter(c *gin.Context) {
-	mu.RLock()
-	defer mu.RUnlock()
-
-	char, exists := characters[currentCharacter]
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "当前角色不存在"})
-		return
-	}
-
+	// 总是返回默认角色橘雪莉，不保存状态
+	char := characters["sherri"]
 	c.JSON(http.StatusOK, char)
 }
 
@@ -336,8 +298,8 @@ func generateImage(c *gin.Context) {
 		return
 	}
 
-	// 确定使用的角色ID
-	characterId := currentCharacter
+	// 确定使用的角色ID，默认为橘雪莉
+	characterId := "sherri"
 	// 如果请求中指定了"random"，则随机选择角色
 	if req.CharacterId == "random" {
 		characterId = getRandomCharacter()
