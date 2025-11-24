@@ -55,10 +55,10 @@ var (
 
 // GenerateImageParams 生成图片的参数
 type GenerateImageParams struct {
-	CharacterID   string
-	Text          string
-	EmotionIndex  *int
-	TextConfigs   []TextConfig
+	CharacterID  string
+	Text         string
+	EmotionIndex *int
+	TextConfigs  []TextConfig
 }
 
 func init() {
@@ -78,11 +78,11 @@ func GenerateImage(params GenerateImageParams) (image.Image, error) {
 
 	// 构造背景和角色图片路径
 	wd, _ := os.Getwd()
-	
+
 	// 随机选择背景图片 (1-16)
 	backgroundIndex := rand.Intn(16) + 1
 	backgroundPath := filepath.Join(wd, "background", fmt.Sprintf("c%d.png", backgroundIndex))
-	
+
 	// 构造角色图片路径
 	characterImagePath := filepath.Join(wd, params.CharacterID, fmt.Sprintf("%s (%d).png", params.CharacterID, emotionIndex))
 
@@ -111,7 +111,7 @@ func GenerateImage(params GenerateImageParams) (image.Image, error) {
 	// 绘制角色图片 (在固定位置)
 	characterBounds := characterImg.Bounds()
 	overlayPosition := image.Point{0, 134} // 与原Python代码保持一致
-	draw.Draw(resultImg, 
+	draw.Draw(resultImg,
 		image.Rectangle{
 			Min: overlayPosition,
 			Max: image.Point{
@@ -119,8 +119,8 @@ func GenerateImage(params GenerateImageParams) (image.Image, error) {
 				Y: overlayPosition.Y + characterBounds.Dy(),
 			},
 		},
-		characterImg, 
-		characterBounds.Min, 
+		characterImg,
+		characterBounds.Min,
 		draw.Over)
 
 	// 在文本框区域内绘制文本
@@ -144,7 +144,7 @@ func getRandomEmotionIndex(emotionCount int, specifiedIndex *int) int {
 	if specifiedIndex != nil && *specifiedIndex >= 1 && *specifiedIndex <= emotionCount {
 		return *specifiedIndex
 	}
-	
+
 	// 随机选择一个表情
 	return rand.Intn(emotionCount) + 1
 }
@@ -182,14 +182,14 @@ func drawTextOnImage(img *image.RGBA, text, fontFile string) error {
 	// 加载字体并搜索最佳字体大小
 	bestFontSize := float64(1)
 	var bestFont *truetype.Font
-	
+
 	// 搜索最大合适的字体大小
 	for fontSize := float64(1); fontSize <= float64(textBoxHeight) && fontSize <= 145; fontSize += 1.0 {
 		font, err := loadFont(fontFile, fontSize)
 		if err != nil {
 			continue
 		}
-		
+
 		// 测试当前字体大小是否合适
 		if testFontSizeFit(font, text, textBoxWidth, textBoxHeight, fontSize) {
 			bestFontSize = fontSize
@@ -198,7 +198,7 @@ func drawTextOnImage(img *image.RGBA, text, fontFile string) error {
 			break
 		}
 	}
-	
+
 	// 如果无法加载指定字体，使用默认字体
 	if bestFont == nil {
 		var err error
@@ -260,16 +260,16 @@ func drawTextOnImage(img *image.RGBA, text, fontFile string) error {
 func testFontSizeFit(font *truetype.Font, text string, maxWidth, maxHeight int, fontSize float64) bool {
 	// 文本换行处理
 	lines := wrapTextToFit(font, text, maxWidth, fontSize)
-	
+
 	// 计算实际需要的高度 (使用估算值)
 	lineHeight := int(fontSize * 1.15) // 15% 行间距
 	totalHeight := len(lines) * lineHeight
-	
+
 	// 检查高度是否适合
 	if totalHeight > maxHeight {
 		return false
 	}
-	
+
 	return true
 }
 
@@ -280,21 +280,21 @@ func wrapTextToFit(font *truetype.Font, text string, maxWidth int, fontSize floa
 	c.SetDPI(72)
 	c.SetFont(font)
 	c.SetFontSize(fontSize)
-	
+
 	var lines []string
 	paragraphs := strings.Split(text, "\n")
-	
+
 	for _, paragraph := range paragraphs {
 		words := strings.Split(paragraph, " ")
 		line := ""
-		
+
 		for _, word := range words {
 			testLine := line
 			if testLine != "" {
 				testLine += " "
 			}
 			testLine += word
-			
+
 			// 测试当前行的宽度
 			width := int(c.PointToFixed(fontSize).Ceil() * len(testLine) * 96 / 72 / 2) // 粗略估算
 			if width <= maxWidth {
@@ -306,17 +306,17 @@ func wrapTextToFit(font *truetype.Font, text string, maxWidth int, fontSize floa
 				line = word
 			}
 		}
-		
+
 		if line != "" {
 			lines = append(lines, line)
 		}
-		
+
 		// 如果段落为空，添加空行
 		if paragraph == "" && (len(lines) == 0 || lines[len(lines)-1] != "") {
 			lines = append(lines, "")
 		}
 	}
-	
+
 	return lines
 }
 
@@ -358,10 +358,9 @@ func drawCharacterTexts(img *image.RGBA, textConfigs []TextConfig, fontFile stri
 			c.SetSrc(image.NewUniform(color.RGBA{255, 255, 255, 255})) // 默认白色
 		}
 
-		// 使用与Python版本完全一致的位置
-		// Python版本中直接使用配置中的位置，没有任何偏移
+		// 使用与Python版本一致的位置，并根据用户要求整体向下调整
 		positionX := config.Position[0]
-		positionY := config.Position[1] + int(float64(config.FontSize)*0.75) // 调整基线对齐
+		positionY := config.Position[1] + int(float64(config.FontSize))
 
 		// 绘制阴影 (偏移2个像素，与Python版本一致)
 		shadowColor := image.NewUniform(color.RGBA{0, 0, 0, 255})
