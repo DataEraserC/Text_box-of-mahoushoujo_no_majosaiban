@@ -294,25 +294,67 @@ func wrapTextToFit(font *truetype.Font, text string, maxWidth int, fontSize floa
 	paragraphs := strings.Split(text, "\n")
 
 	for _, paragraph := range paragraphs {
-		words := strings.Split(paragraph, " ")
-		line := ""
-
-		for _, word := range words {
-			testLine := line
-			if testLine != "" {
-				testLine += " "
+		// 按空格分割单词，如果没有空格则按字符分割
+		hasSpace := strings.Contains(paragraph, " ")
+		var units []string
+		if hasSpace {
+			units = strings.Split(paragraph, " ")
+		} else {
+			// 将字符串转换为字符切片
+			for _, r := range paragraph {
+				units = append(units, string(r))
 			}
-			testLine += word
+		}
+		
+		line := ""
+		
+		// 连接单元的辅助函数
+		unitJoin := func(a, b string) string {
+			if a == "" {
+				return b
+			}
+			if hasSpace {
+				return a + " " + b
+			}
+			return a + b
+		}
 
-			// 测试当前行的宽度
-			width := int(c.PointToFixed(fontSize).Ceil() * len(testLine) * 96 / 72 / 2) // 粗略估算
+		for _, unit := range units {
+			trial := unitJoin(line, unit)
+			// 准确测量文本宽度
+			width := getTextWidth(c, trial)
+			
 			if width <= maxWidth {
-				line = testLine
+				line = trial
 			} else {
 				if line != "" {
 					lines = append(lines, line)
 				}
-				line = word
+				
+				// 如果单元太大，需要进一步拆分（针对无空格情况）
+				if hasSpace {
+					if getTextWidth(c, unit) <= maxWidth {
+						line = unit
+					} else {
+						// 单词太长也需要拆分
+						line = breakLongWord(c, unit, maxWidth)
+						if line != "" {
+							lines = append(lines, line)
+						}
+						line = ""
+					}
+				} else {
+					// 字符级别的处理
+					if getTextWidth(c, unit) <= maxWidth {
+						line = unit
+					} else {
+						// 特殊情况：单个字符就超过了宽度
+						if len(lines) > 0 && lines[len(lines)-1] != "" {
+							lines = append(lines, "")
+						}
+						line = ""
+					}
+				}
 			}
 		}
 
@@ -327,6 +369,37 @@ func wrapTextToFit(font *truetype.Font, text string, maxWidth int, fontSize floa
 	}
 
 	return lines
+}
+
+// getTextWidth 准确测量文本宽度
+func getTextWidth(c *freetype.Context, text string) int {
+	// 使用freetype库准确测量文本宽度
+	width, err := c.DrawString(text, freetype.Pt(0, 0))
+	if err != nil {
+		return 0
+	}
+	return int(width.X) >> 6 // 将26.6定点数转换为整数
+}
+
+// breakLongWord 拆分长单词
+func breakLongWord(c *freetype.Context, word string, maxWidth int) string {
+	// 对于很长的单词，尝试逐字符添加直到达到最大宽度
+	runes := []rune(word)
+	result := ""
+	
+	for i := 0; i < len(runes); i++ {
+		trial := result + string(runes[i])
+		width := getTextWidth(c, trial)
+		
+		if width <= maxWidth {
+			result = trial
+		} else {
+			// 达到极限，返回当前结果
+			break
+		}
+	}
+	
+	return result
 }
 
 // drawCharacterTexts 绘制角色特定文字水印
