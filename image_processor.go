@@ -359,9 +359,9 @@ func drawCharacterTexts(img *image.RGBA, textConfigs []TextConfig, fontFile stri
 		}
 
 		// 使用与Python版本完全一致的位置
-		// Python版本中没有额外的Y轴偏移，所以我们应该使用配置中的原始位置
+		// Python版本中直接使用配置中的位置，没有任何偏移
 		positionX := config.Position[0]
-		positionY := config.Position[1]
+		positionY := config.Position[1] + int(float64(config.FontSize)*0.75) // 调整基线对齐
 
 		// 绘制阴影 (偏移2个像素，与Python版本一致)
 		shadowColor := image.NewUniform(color.RGBA{0, 0, 0, 255})
