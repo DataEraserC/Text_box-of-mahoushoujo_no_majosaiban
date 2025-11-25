@@ -1,66 +1,66 @@
 [
   {
-    "id": 1,
-    "name": "背景1"
+    "name": "背景1",
+    "filename": "background/c1.png"
   },
   {
-    "id": 2,
-    "name": "背景2"
+    "name": "背景2",
+    "filename": "background/c2.png"
   },
   {
-    "id": 3,
-    "name": "背景3"
+    "name": "背景3",
+    "filename": "background/c3.png"
   },
   {
-    "id": 4,
-    "name": "背景4"
+    "name": "背景4",
+    "filename": "background/c4.png"
   },
   {
-    "id": 5,
-    "name": "背景5"
+    "name": "背景5",
+    "filename": "background/c5.png"
   },
   {
-    "id": 6,
-    "name": "背景6"
+    "name": "背景6",
+    "filename": "background/c6.png"
   },
   {
-    "id": 7,
-    "name": "背景7"
+    "name": "背景7",
+    "filename": "background/c7.png"
   },
   {
-    "id": 8,
-    "name": "背景8"
+    "name": "背景8",
+    "filename": "background/c8.png"
   },
   {
-    "id": 9,
-    "name": "背景9"
+    "name": "背景9",
+    "filename": "background/c9.png"
   },
   {
-    "id": 10,
-    "name": "背景10"
+    "name": "背景10",
+    "filename": "background/c10.png"
   },
   {
-    "id": 11,
-    "name": "背景11"
+    "name": "背景11",
+    "filename": "background/c11.png"
   },
   {
-    "id": 12,
-    "name": "背景12"
+    "name": "背景12",
+    "filename": "background/c12.png"
   },
   {
-    "id": 13,
-    "name": "背景13"
+    "name": "背景13",
+    "filename": "background/c13.png"
   },
   {
-    "id": 14,
-    "name": "背景14"
+    "name": "背景14",
+    "filename": "background/c14.png"
   },
   {
-    "id": 15,
-    "name": "背景15"
+    "name": "背景15",
+    "filename": "background/c15.png"
   },
   {
-    "id": 16,
-    "name": "背景16"
+    "name": "背景16",
+    "filename": "background/c16.png"
   }
 ]

@@ -1,86 +1,460 @@
 [
   {
-    "id": "ema",
     "name": "樱羽艾玛",
-    "emotion_count": 8,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "ema/ema (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "ema/ema (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "ema/ema (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "ema/ema (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "ema/ema (5).png"
+      },
+      {
+        "name": "表情6",
+        "filename": "ema/ema (6).png"
+      },
+      {
+        "name": "表情7",
+        "filename": "ema/ema (7).png"
+      },
+      {
+        "name": "表情8",
+        "filename": "ema/ema (8).png"
+      }
+    ]
   },
   {
-    "id": "hiro",
     "name": "二阶堂希罗",
-    "emotion_count": 6,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "hiro/hiro (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "hiro/hiro (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "hiro/hiro (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "hiro/hiro (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "hiro/hiro (5).png"
+      },
+      {
+        "name": "表情6",
+        "filename": "hiro/hiro (6).png"
+      }
+    ]
   },
   {
-    "id": "sherri",
     "name": "橘雪莉",
-    "emotion_count": 7,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "sherri/sherri (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "sherri/sherri (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "sherri/sherri (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "sherri/sherri (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "sherri/sherri (5).png"
+      },
+      {
+        "name": "表情6",
+        "filename": "sherri/sherri (6).png"
+      },
+      {
+        "name": "表情7",
+        "filename": "sherri/sherri (7).png"
+      }
+    ]
   },
   {
-    "id": "hanna",
     "name": "远野汉娜",
-    "emotion_count": 5,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "hanna/hanna (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "hanna/hanna (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "hanna/hanna (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "hanna/hanna (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "hanna/hanna (5).png"
+      }
+    ]
   },
   {
-    "id": "anan",
     "name": "夏目安安",
-    "emotion_count": 9,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "anan/anan (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "anan/anan (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "anan/anan (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "anan/anan (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "anan/anan (5).png"
+      },
+      {
+        "name": "表情6",
+        "filename": "anan/anan (6).png"
+      },
+      {
+        "name": "表情7",
+        "filename": "anan/anan (7).png"
+      },
+      {
+        "name": "表情8",
+        "filename": "anan/anan (8).png"
+      },
+      {
+        "name": "表情9",
+        "filename": "anan/anan (9).png"
+      }
+    ]
   },
   {
-    "id": "yuki",
     "name": "月代雪",
-    "emotion_count": 18,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "yuki/yuki (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "yuki/yuki (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "yuki/yuki (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "yuki/yuki (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "yuki/yuki (5).png"
+      },
+      {
+        "name": "表情6",
+        "filename": "yuki/yuki (6).png"
+      },
+      {
+        "name": "表情7",
+        "filename": "yuki/yuki (7).png"
+      },
+      {
+        "name": "表情8",
+        "filename": "yuki/yuki (8).png"
+      },
+      {
+        "name": "表情9",
+        "filename": "yuki/yuki (9).png"
+      },
+      {
+        "name": "表情10",
+        "filename": "yuki/yuki (1)0.png"
+      },
+      {
+        "name": "表情11",
+        "filename": "yuki/yuki (1)1.png"
+      },
+      {
+        "name": "表情12",
+        "filename": "yuki/yuki (1)2.png"
+      },
+      {
+        "name": "表情13",
+        "filename": "yuki/yuki (1)3.png"
+      },
+      {
+        "name": "表情14",
+        "filename": "yuki/yuki (1)4.png"
+      },
+      {
+        "name": "表情15",
+        "filename": "yuki/yuki (1)5.png"
+      },
+      {
+        "name": "表情16",
+        "filename": "yuki/yuki (1)6.png"
+      },
+      {
+        "name": "表情17",
+        "filename": "yuki/yuki (1)7.png"
+      },
+      {
+        "name": "表情18",
+        "filename": "yuki/yuki (1)8.png"
+      }
+    ]
   },
   {
-    "id": "meruru",
     "name": "冰上梅露露",
-    "emotion_count": 6,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "meruru/meruru (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "meruru/meruru (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "meruru/meruru (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "meruru/meruru (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "meruru/meruru (5).png"
+      },
+      {
+        "name": "表情6",
+        "filename": "meruru/meruru (6).png"
+      }
+    ]
   },
   {
-    "id": "noa",
     "name": "城崎诺亚",
-    "emotion_count": 6,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "noa/noa (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "noa/noa (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "noa/noa (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "noa/noa (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "noa/noa (5).png"
+      },
+      {
+        "name": "表情6",
+        "filename": "noa/noa (6).png"
+      }
+    ]
   },
   {
-    "id": "reia",
     "name": "莲见蕾雅",
-    "emotion_count": 7,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "reia/reia (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "reia/reia (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "reia/reia (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "reia/reia (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "reia/reia (5).png"
+      },
+      {
+        "name": "表情6",
+        "filename": "reia/reia (6).png"
+      },
+      {
+        "name": "表情7",
+        "filename": "reia/reia (7).png"
+      }
+    ]
   },
   {
-    "id": "miria",
     "name": "佐伯米莉亚",
-    "emotion_count": 4,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "miria/miria (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "miria/miria (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "miria/miria (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "miria/miria (4).png"
+      }
+    ]
   },
   {
-    "id": "nanoka",
     "name": "黑部奈叶香",
-    "emotion_count": 5,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "nanoka/nanoka (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "nanoka/nanoka (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "nanoka/nanoka (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "nanoka/nanoka (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "nanoka/nanoka (5).png"
+      }
+    ]
   },
   {
-    "id": "mago",
     "name": "宝生玛格",
-    "emotion_count": 5,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "mago/mago (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "mago/mago (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "mago/mago (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "mago/mago (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "mago/mago (5).png"
+      }
+    ]
   },
   {
-    "id": "alisa",
     "name": "紫藤亚里沙",
-    "emotion_count": 6,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "alisa/alisa (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "alisa/alisa (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "alisa/alisa (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "alisa/alisa (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "alisa/alisa (5).png"
+      },
+      {
+        "name": "表情6",
+        "filename": "alisa/alisa (6).png"
+      }
+    ]
   },
   {
-    "id": "coco",
     "name": "泽渡可可",
-    "emotion_count": 5,
-    "font": "font3.ttf"
+    "emotions": [
+      {
+        "name": "表情1",
+        "filename": "coco/coco (1).png"
+      },
+      {
+        "name": "表情2",
+        "filename": "coco/coco (2).png"
+      },
+      {
+        "name": "表情3",
+        "filename": "coco/coco (3).png"
+      },
+      {
+        "name": "表情4",
+        "filename": "coco/coco (4).png"
+      },
+      {
+        "name": "表情5",
+        "filename": "coco/coco (5).png"
+      }
+    ]
   }
 ]

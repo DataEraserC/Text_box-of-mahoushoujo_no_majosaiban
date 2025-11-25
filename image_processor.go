@@ -31,14 +31,6 @@ type AppConfig struct {
 	DefaultCharacter string `json:"default_character"`
 }
 
-// CharacterConfig 角色配置
-type CharacterConfig struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	EmotionCount int    `json:"emotion_count"`
-	FontFile     string `json:"font"`
-}
-
 // GenerateImageParams 生成图片的参数
 type GenerateImageParams struct {
 	CharacterID     string
@@ -50,7 +42,6 @@ type GenerateImageParams struct {
 
 var (
 	textBoxConfig    TextBoxConfig
-	characterConfigs map[string]CharacterConfig
 	appConfig        AppConfig
 )
 
@@ -59,9 +50,6 @@ func init() {
 	
 	// 加载应用配置
 	loadAppConfig()
-	
-	// 加载角色配置
-	loadCharacterConfigs()
 }
 
 // loadAppConfig 加载应用配置
@@ -92,66 +80,27 @@ func loadAppConfig() {
 	}
 }
 
-// loadCharacterConfigs 加载角色配置
-func loadCharacterConfigs() {
-	file, err := os.ReadFile("config/characters.json")
-	if err != nil {
-		// 如果配置文件不存在，使用默认配置
-		setupDefaultCharacterConfigs()
-		return
-	}
-	
-	var chars []CharacterConfig
-	if err := json.Unmarshal(file, &chars); err != nil {
-		// 如果解析失败，使用默认配置
-		setupDefaultCharacterConfigs()
-		return
-	}
-	
-	characterConfigs = make(map[string]CharacterConfig)
-	for _, char := range chars {
-		characterConfigs[char.ID] = char
-	}
-}
-
-// setupDefaultCharacterConfigs 设置默认角色配置
-func setupDefaultCharacterConfigs() {
-	characterConfigs = map[string]CharacterConfig{
-		"ema":    {"ema", "樱羽艾玛", 8, "font3.ttf"},
-		"hiro":   {"hiro", "二阶堂希罗", 6, "font3.ttf"},
-		"sherri": {"sherri", "橘雪莉", 7, "font3.ttf"},
-		"hanna":  {"hanna", "远野汉娜", 5, "font3.ttf"},
-		"anan":   {"anan", "夏目安安", 9, "font3.ttf"},
-		"yuki":   {"yuki", "月代雪", 18, "font3.ttf"},
-		"meruru": {"meruru", "冰上梅露露", 6, "font3.ttf"},
-		"noa":    {"noa", "城崎诺亚", 6, "font3.ttf"},
-		"reia":   {"reia", "莲见蕾雅", 7, "font3.ttf"},
-		"miria":  {"miria", "佐伯米莉亚", 4, "font3.ttf"},
-		"nanoka": {"nanoka", "黑部奈叶香", 5, "font3.ttf"},
-		"mago":   {"mago", "宝生玛格", 5, "font3.ttf"},
-		"alisa":  {"alisa", "紫藤亚里沙", 6, "font3.ttf"},
-		"coco":   {"coco", "泽渡可可", 5, "font3.ttf"},
-	}
-}
-
 // getDefaultCharacter 获取默认角色ID
 func getDefaultCharacter() string {
 	if appConfig.DefaultCharacter != "" {
 		return appConfig.DefaultCharacter
 	}
-	return "sherri" // 默认角色
+	return "char2" // 橘雪莉作为默认角色
 }
 
 // GenerateImage 生成完整的魔法少女裁判图片
 func GenerateImage(params GenerateImageParams) (image.Image, error) {
 	// 获取角色配置
-	charConfig, exists := characterConfigs[params.CharacterID]
+	mu.RLock()
+	character, exists := characters[params.CharacterID]
+	mu.RUnlock()
+	
 	if !exists {
 		return nil, fmt.Errorf("角色 %s 不存在", params.CharacterID)
 	}
 
 	// 确定使用的表情索引
-	emotionIndex := getRandomEmotionIndex(charConfig.EmotionCount, params.EmotionIndex)
+	emotionIndex := getRandomEmotionIndex(len(character.Emotions), params.EmotionIndex)
 
 	// 确定使用的背景索引
 	backgroundIndex := getRandomBackgroundIndex(params.BackgroundIndex)
@@ -160,10 +109,20 @@ func GenerateImage(params GenerateImageParams) (image.Image, error) {
 	wd, _ := os.Getwd()
 	
 	// 使用指定或随机的背景图片
-	backgroundPath := filepath.Join(wd, "background", fmt.Sprintf("c%d.png", backgroundIndex))
+	var backgroundPath string
+	if backgroundIndex > 0 && backgroundIndex <= len(backgrounds) {
+		backgroundPath = filepath.Join(wd, backgrounds[backgroundIndex-1].Filename)
+	} else {
+		backgroundPath = filepath.Join(wd, "backgrounds", fmt.Sprintf("bg%d.png", backgroundIndex))
+	}
 	
 	// 构造角色图片路径
-	characterImagePath := filepath.Join(wd, params.CharacterID, fmt.Sprintf("%s (%d).png", params.CharacterID, emotionIndex))
+	var characterImagePath string
+	if emotionIndex > 0 && emotionIndex <= len(character.Emotions) {
+		characterImagePath = filepath.Join(wd, character.Emotions[emotionIndex-1].Filename)
+	} else {
+		characterImagePath = filepath.Join(wd, "characters", fmt.Sprintf("char_%d.png", emotionIndex))
+	}
 
 	// 打开背景图片
 	backgroundImg, err := openImage(backgroundPath)
@@ -198,21 +157,18 @@ func GenerateImage(params GenerateImageParams) (image.Image, error) {
 				Y: overlayPosition.Y + characterBounds.Dy(),
 			},
 		},
-		characterImg, 
-		characterBounds.Min, 
-		draw.Over)
+		characterImg, image.Point{0, 0}, draw.Over)
 
-	// 在文本框区域内绘制文本
-	err = drawTextOnImage(resultImg, params.Text, charConfig.FontFile)
-	if err != nil {
-		// 文本绘制失败不中断整个流程
-		fmt.Printf("警告: 文本绘制失败: %v\n", err)
-	}
-
-	// 绘制角色特定文字水印
-	err = drawCharacterTexts(resultImg, params.TextConfigs, charConfig.FontFile)
-	if err != nil {
-		fmt.Printf("警告: 角色文字水印绘制失败: %v\n", err)
+	// 在图片上绘制文本
+	if params.Text != "" {
+		// 为不同角色使用不同的字体文件
+		fontFile := "font3.ttf" // 默认字体
+		
+		err := drawTextOnImage(resultImg, params.Text, fontFile, params.TextConfigs)
+		if err != nil {
+			// 如果绘制文本失败，仅记录日志但不中断流程
+			fmt.Printf("警告: 绘制文本失败: %v\n", err)
+		}
 	}
 
 	return resultImg, nil
@@ -230,12 +186,12 @@ func getRandomEmotionIndex(emotionCount int, specifiedIndex *int) int {
 
 // getRandomBackgroundIndex 获取随机或指定的背景索引
 func getRandomBackgroundIndex(specifiedIndex *int) int {
-	if specifiedIndex != nil && *specifiedIndex >= 1 && *specifiedIndex <= 16 {
+	if specifiedIndex != nil && *specifiedIndex >= 1 && *specifiedIndex <= len(backgrounds) {
 		return *specifiedIndex
 	}
 	
-	// 随机选择一个背景 (1-16)
-	return rand.Intn(16) + 1
+	// 随机选择一个背景
+	return rand.Intn(len(backgrounds)) + 1
 }
 
 // openImage 打开图片文件
@@ -263,7 +219,7 @@ func createDefaultImage(width, height int) image.Image {
 }
 
 // drawTextOnImage 在图片上绘制文本
-func drawTextOnImage(img *image.RGBA, text, fontFile string) error {
+func drawTextOnImage(img *image.RGBA, text, fontFile string, textConfigs []TextConfig) error {
 	// 获取文本框区域
 	textBoxWidth := textBoxConfig.Over[0] - textBoxConfig.Position[0]
 	textBoxHeight := textBoxConfig.Over[1] - textBoxConfig.Position[1]
@@ -322,43 +278,107 @@ func drawTextOnImage(img *image.RGBA, text, fontFile string) error {
 	for i, line := range lines {
 		y := startY + i*lineHeight + int(bestFontSize)
 
-		// 添加阴影效果
-		shadowColor := image.NewUniform(color.RGBA{0, 0, 0, 255}) // 黑色阴影
+		// 绘制阴影 (偏移2个像素，与Python版本一致)
+		shadowColor := image.NewUniform(color.RGBA{0, 0, 0, 255})
 		c.SetSrc(shadowColor)
 		_, err := c.DrawString(line, freetype.Pt(startX+2, y+2))
 		if err != nil {
-			return err
+			continue
 		}
 
-		// 绘制主文字 (白色)
-		c.SetSrc(image.NewUniform(color.RGBA{255, 255, 255, 255})) // 白色文字
+		// 绘制主文字
+		textColor := image.NewUniform(color.RGBA{255, 255, 255, 255})
+		c.SetSrc(textColor)
 		_, err = c.DrawString(line, freetype.Pt(startX, y))
 		if err != nil {
-			return err
+			continue
+		}
+	}
+
+	// 绘制角色特定的文本配置（如姓名水印）
+	for _, config := range textConfigs {
+		// 加载指定字体大小
+		font, err := loadFont(fontFile, float64(config.FontSize))
+		if err != nil {
+			continue
+		}
+
+		c.SetFont(font)
+		c.SetFontSize(float64(config.FontSize))
+
+		// 使用与Python版本一致的位置，并根据用户要求整体向下调整
+		positionX := config.Position[0]
+		positionY := config.Position[1] + int(float64(config.FontSize))
+
+		// 绘制阴影 (偏移2个像素，与Python版本一致)
+		shadowColor := image.NewUniform(color.RGBA{0, 0, 0, 255})
+		c.SetSrc(shadowColor)
+		_, err = c.DrawString(config.Text, freetype.Pt(positionX+2, positionY+2))
+		if err != nil {
+			continue
+		}
+
+		// 绘制主文字
+		if len(config.FontColor) >= 3 {
+			color := image.NewUniform(color.RGBA{
+				uint8(config.FontColor[0]),
+				uint8(config.FontColor[1]),
+				uint8(config.FontColor[2]),
+				255,
+			})
+			c.SetSrc(color)
+		}
+		_, err = c.DrawString(config.Text, freetype.Pt(positionX, positionY))
+		if err != nil {
+			continue
 		}
 	}
 
 	return nil
 }
 
-// testFontSizeFit 测试指定字体大小是否适合文本框
-func testFontSizeFit(font *truetype.Font, text string, maxWidth, maxHeight int, fontSize float64) bool {
-	// 文本换行处理
-	lines := wrapTextToFit(font, text, maxWidth, fontSize)
-
-	// 计算实际需要的高度 (使用估算值)
-	lineHeight := int(fontSize * 1.15) // 15% 行间距
-	totalHeight := len(lines) * lineHeight
-
-	// 检查高度是否适合
-	if totalHeight > maxHeight {
-		return false
+// loadFont 加载指定字体文件
+func loadFont(fontFile string, size float64) (*truetype.Font, error) {
+	// 获取当前工作目录
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
 	}
 
-	return true
+	// 构造字体文件路径
+	fontPath := filepath.Join(wd, fontFile)
+
+	// 打开字体文件
+	fontBytes, err := os.ReadFile(fontPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// 解析字体
+	return freetype.ParseFont(fontBytes)
 }
 
-// wrapTextToFit 根据字体和文本框宽度自动换行
+// loadDefaultFont 加载默认字体
+func loadDefaultFont(size float64) (*truetype.Font, error) {
+	// 如果无法加载指定字体，返回nil，让调用者处理
+	return nil, fmt.Errorf("无法加载字体")
+}
+
+// testFontSizeFit 测试指定字体大小是否适合文本框
+func testFontSizeFit(font *truetype.Font, text string, maxWidth, maxHeight int, fontSize float64) bool {
+	c := freetype.NewContext()
+	c.SetDPI(72)
+	c.SetFont(font)
+	c.SetFontSize(fontSize)
+
+	lines := wrapTextToFit(font, text, maxWidth, fontSize)
+	lineHeight := int(fontSize * 1.15)
+	totalHeight := len(lines) * lineHeight
+
+	return totalHeight <= maxHeight
+}
+
+// wrapTextToFit 将文本包装成适合指定宽度的多行
 func wrapTextToFit(font *truetype.Font, text string, maxWidth int, fontSize float64) []string {
 	// 创建临时上下文用于测量文本
 	c := freetype.NewContext()
@@ -424,152 +444,46 @@ func wrapTextToFit(font *truetype.Font, text string, maxWidth int, fontSize floa
 					if getTextWidth(c, unit) <= maxWidth {
 						line = unit
 					} else {
-						// 特殊情况：单个字符就超过了宽度
-						if len(lines) > 0 && lines[len(lines)-1] != "" {
-							lines = append(lines, "")
-						}
-						line = ""
+						// 单个字符就超过宽度，这种情况理论上不应该出现
+						line = unit
 					}
 				}
 			}
 		}
-
+		
+		// 添加最后一行
 		if line != "" {
 			lines = append(lines, line)
 		}
-
-		// 如果段落为空，添加空行
-		if paragraph == "" && (len(lines) == 0 || lines[len(lines)-1] != "") {
-			lines = append(lines, "")
-		}
 	}
-
+	
 	return lines
 }
 
-// getTextWidth 准确测量文本宽度
+// getTextWidth 获取文本宽度
 func getTextWidth(c *freetype.Context, text string) int {
-	// 使用freetype库准确测量文本宽度
-	width, err := c.DrawString(text, freetype.Pt(0, 0))
-	if err != nil {
-		return 0
+	width := 0
+	
+	// 准确测量文本宽度
+	w, err := c.DrawString(text, freetype.Pt(0, 0))
+	if err == nil {
+		width = w.X.Floor()
 	}
-	return int(width.X) >> 6 // 将26.6定点数转换为整数
+	
+	return width
 }
 
 // breakLongWord 拆分长单词
 func breakLongWord(c *freetype.Context, word string, maxWidth int) string {
-	// 对于很长的单词，尝试逐字符添加直到达到最大宽度
-	runes := []rune(word)
+	// 对于超长单词，我们按字符逐步构建直到达到最大宽度
 	result := ""
-	
-	for i := 0; i < len(runes); i++ {
-		trial := result + string(runes[i])
-		width := getTextWidth(c, trial)
-		
-		if width <= maxWidth {
-			result = trial
-		} else {
-			// 达到极限，返回当前结果
+	for _, r := range word {
+		trial := result + string(r)
+		if getTextWidth(c, trial) > maxWidth {
+			// 如果加上这个字符会超出宽度，则停止
 			break
 		}
+		result = trial
 	}
-	
 	return result
-}
-
-// drawCharacterTexts 绘制角色特定文字水印
-func drawCharacterTexts(img *image.RGBA, textConfigs []TextConfig, fontFile string) error {
-	for _, config := range textConfigs {
-		if config.Text == "" {
-			continue
-		}
-
-		// 加载字体
-		font, err := loadFont(fontFile, float64(config.FontSize))
-		if err != nil {
-			// 如果无法加载指定字体，使用默认字体
-			font, err = loadDefaultFont(float64(config.FontSize))
-			if err != nil {
-				continue // 跳过这个文字配置
-			}
-		}
-
-		// 创建字体绘制上下文
-		c := freetype.NewContext()
-		c.SetDPI(72)
-		c.SetFont(font)
-		c.SetFontSize(float64(config.FontSize))
-		c.SetClip(img.Bounds())
-		c.SetDst(img)
-
-		// 设置文字颜色
-		if len(config.FontColor) >= 3 {
-			color := image.NewUniform(color.RGBA{
-				uint8(config.FontColor[0]),
-				uint8(config.FontColor[1]),
-				uint8(config.FontColor[2]),
-				255,
-			})
-			c.SetSrc(color)
-		} else {
-			c.SetSrc(image.NewUniform(color.RGBA{255, 255, 255, 255})) // 默认白色
-		}
-
-		// 使用与Python版本一致的位置，并根据用户要求整体向下调整
-		positionX := config.Position[0]
-		positionY := config.Position[1] + int(float64(config.FontSize))
-
-		// 绘制阴影 (偏移2个像素，与Python版本一致)
-		shadowColor := image.NewUniform(color.RGBA{0, 0, 0, 255})
-		c.SetSrc(shadowColor)
-		_, err = c.DrawString(config.Text, freetype.Pt(positionX+2, positionY+2))
-		if err != nil {
-			continue
-		}
-
-		// 绘制主文字
-		if len(config.FontColor) >= 3 {
-			color := image.NewUniform(color.RGBA{
-				uint8(config.FontColor[0]),
-				uint8(config.FontColor[1]),
-				uint8(config.FontColor[2]),
-				255,
-			})
-			c.SetSrc(color)
-		}
-		_, err = c.DrawString(config.Text, freetype.Pt(positionX, positionY))
-		if err != nil {
-			continue
-		}
-	}
-
-	return nil
-}
-
-// loadFont 加载指定字体文件
-func loadFont(fontFile string, size float64) (*truetype.Font, error) {
-	// 获取当前工作目录
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	// 构造字体文件路径
-	fontPath := filepath.Join(wd, fontFile)
-
-	// 打开字体文件
-	fontBytes, err := os.ReadFile(fontPath)
-	if err != nil {
-		return nil, err
-	}
-
-	// 解析字体
-	return freetype.ParseFont(fontBytes)
-}
-
-// loadDefaultFont 加载默认字体
-func loadDefaultFont(size float64) (*truetype.Font, error) {
-	// 如果无法加载指定字体，返回nil，让调用者处理
-	return nil, fmt.Errorf("无法加载字体")
 }

@@ -17,18 +17,28 @@ import (
 
 // Character 角色信息
 type Character struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	EmotionCount int    `json:"emotion_count"`
-	Font         string `json:"font"`
+	Name     string    `json:"name"`
+	Emotions []Emotion `json:"emotions"`
+}
+
+// Emotion 表情信息
+type Emotion struct {
+	Name     string `json:"name"`
+	Filename string `json:"filename"`
+}
+
+// Background 背景信息
+type Background struct {
+	Name     string `json:"name"`
+	Filename string `json:"filename"`
 }
 
 // TextConfig 角色文字配置
 type TextConfig struct {
-	Text       string `json:"text"`
-	Position   []int  `json:"position"`
-	FontColor  []int  `json:"font_color"`
-	FontSize   int    `json:"font_size"`
+	Text      string `json:"text"`
+	Position  []int  `json:"position"`
+	FontColor []int  `json:"font_color"`
+	FontSize  int    `json:"font_size"`
 }
 
 // GenerateRequest 生成图片的请求
@@ -41,18 +51,6 @@ type GenerateRequest struct {
 	BackgroundIndex *int   `json:"backgroundIndex,omitempty"`
 }
 
-// Emotion 表情信息
-type Emotion struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-// Background 背景信息
-type Background struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
 var (
 	characters  map[string]Character
 	textConfigs map[string][]TextConfig
@@ -63,13 +61,13 @@ var (
 func init() {
 	// 加载应用配置
 	loadAppConfig()
-	
+
 	// 加载角色配置
 	loadCharacters()
-	
+
 	// 加载背景配置
 	loadBackgrounds()
-	
+
 	// 初始化文字配置
 	initTextConfigs()
 }
@@ -80,15 +78,35 @@ func loadCharacters() {
 	if err != nil {
 		panic(fmt.Sprintf("无法读取角色配置文件: %v", err))
 	}
-	
-	var chars []Character
+
+	var chars []map[string]interface{}
 	if err := json.Unmarshal(file, &chars); err != nil {
 		panic(fmt.Sprintf("无法解析角色配置文件: %v", err))
 	}
-	
+
 	characters = make(map[string]Character)
-	for _, char := range chars {
-		characters[char.ID] = char
+	for i, charData := range chars {
+		name, _ := charData["name"].(string)
+		emotionsData, _ := charData["emotions"].([]interface{})
+
+		var emotions []Emotion
+		for _, eData := range emotionsData {
+			if eMap, ok := eData.(map[string]interface{}); ok {
+				emotionName, _ := eMap["name"].(string)
+				filename, _ := eMap["filename"].(string)
+				emotions = append(emotions, Emotion{
+					Name:     emotionName,
+					Filename: filename,
+				})
+			}
+		}
+
+		// 使用索引作为角色ID，以便保持向后兼容
+		characterId := fmt.Sprintf("char%d", i)
+		characters[characterId] = Character{
+			Name:     name,
+			Emotions: emotions,
+		}
 	}
 }
 
@@ -98,7 +116,7 @@ func loadBackgrounds() {
 	if err != nil {
 		panic(fmt.Sprintf("无法读取背景配置文件: %v", err))
 	}
-	
+
 	if err := json.Unmarshal(file, &backgrounds); err != nil {
 		panic(fmt.Sprintf("无法解析背景配置文件: %v", err))
 	}
@@ -107,89 +125,89 @@ func loadBackgrounds() {
 // initTextConfigs 初始化文字配置
 func initTextConfigs() {
 	textConfigs = map[string][]TextConfig{
-		"nanoka": {
-			{Text: "黑", Position: []int{759, 63}, FontColor: []int{131, 143, 147}, FontSize: 196},
-			{Text: "部", Position: []int{955, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-			{Text: "奈", Position: []int{1053, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
-			{Text: "叶香", Position: []int{1197, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-		},
-		"hiro": {
-			{Text: "二", Position: []int{759, 63}, FontColor: []int{239, 79, 84}, FontSize: 196},
-			{Text: "阶堂", Position: []int{955, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-			{Text: "希", Position: []int{1143, 110}, FontColor: []int{255, 255, 255}, FontSize: 147},
-			{Text: "罗", Position: []int{1283, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-		},
-		"ema": {
+		"char0": {
 			{Text: "樱", Position: []int{759, 73}, FontColor: []int{253, 145, 175}, FontSize: 186},
 			{Text: "羽", Position: []int{949, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
 			{Text: "艾", Position: []int{1039, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
 			{Text: "玛", Position: []int{1183, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
 		},
-		"sherri": {
+		"char1": {
+			{Text: "二", Position: []int{759, 63}, FontColor: []int{239, 79, 84}, FontSize: 196},
+			{Text: "阶堂", Position: []int{955, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+			{Text: "希", Position: []int{1143, 110}, FontColor: []int{255, 255, 255}, FontSize: 147},
+			{Text: "罗", Position: []int{1283, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+		},
+		"char2": {
 			{Text: "橘", Position: []int{759, 73}, FontColor: []int{137, 177, 251}, FontSize: 186},
 			{Text: "雪", Position: []int{943, 110}, FontColor: []int{255, 255, 255}, FontSize: 147},
 			{Text: "莉", Position: []int{1093, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
 			{Text: "", Position: []int{0, 0}, FontColor: []int{255, 255, 255}, FontSize: 1},
 		},
-		"anan": {
-			{Text: "夏", Position: []int{759, 73}, FontColor: []int{159, 145, 251}, FontSize: 186},
-			{Text: "目", Position: []int{949, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-			{Text: "安", Position: []int{1039, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
-			{Text: "安", Position: []int{1183, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-		},
-		"noa": {
-			{Text: "城", Position: []int{759, 73}, FontColor: []int{104, 223, 231}, FontSize: 186},
-			{Text: "崎", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-			{Text: "诺", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
-			{Text: "亚", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-		},
-		"coco": {
-			{Text: "泽", Position: []int{759, 73}, FontColor: []int{251, 114, 78}, FontSize: 186},
-			{Text: "渡", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-			{Text: "可", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
-			{Text: "可", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-		},
-		"alisa": {
-			{Text: "紫", Position: []int{759, 73}, FontColor: []int{235, 75, 60}, FontSize: 186},
-			{Text: "藤", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-			{Text: "亚", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
-			{Text: "里沙", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-		},
-		"reia": {
-			{Text: "莲", Position: []int{759, 73}, FontColor: []int{253, 177, 88}, FontSize: 186},
-			{Text: "见", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-			{Text: "蕾", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
-			{Text: "雅", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-		},
-		"mago": {
-			{Text: "宝", Position: []int{759, 73}, FontColor: []int{185, 124, 235}, FontSize: 186},
-			{Text: "生", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-			{Text: "玛", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
-			{Text: "格", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-		},
-		"hanna": {
+		"char3": {
 			{Text: "远", Position: []int{759, 73}, FontColor: []int{169, 199, 30}, FontSize: 186},
 			{Text: "野", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
 			{Text: "汉", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
 			{Text: "娜", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
 		},
-		"meruru": {
+		"char4": {
+			{Text: "夏", Position: []int{759, 73}, FontColor: []int{159, 145, 251}, FontSize: 186},
+			{Text: "目", Position: []int{949, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+			{Text: "安", Position: []int{1039, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
+			{Text: "安", Position: []int{1183, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+		},
+		"char5": {
+			{Text: "月", Position: []int{759, 63}, FontColor: []int{195, 209, 231}, FontSize: 196},
+			{Text: "代", Position: []int{948, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+			{Text: "雪", Position: []int{1053, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
+			{Text: "", Position: []int{0, 0}, FontColor: []int{255, 255, 255}, FontSize: 1},
+		},
+		"char6": {
 			{Text: "冰", Position: []int{759, 73}, FontColor: []int{227, 185, 175}, FontSize: 186},
 			{Text: "上", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
 			{Text: "梅", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
 			{Text: "露露", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
 		},
-		"miria": {
+		"char7": {
+			{Text: "城", Position: []int{759, 73}, FontColor: []int{104, 223, 231}, FontSize: 186},
+			{Text: "崎", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+			{Text: "诺", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
+			{Text: "亚", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+		},
+		"char8": {
+			{Text: "莲", Position: []int{759, 73}, FontColor: []int{253, 177, 88}, FontSize: 186},
+			{Text: "见", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+			{Text: "蕾", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
+			{Text: "雅", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+		},
+		"char9": {
 			{Text: "佐", Position: []int{759, 73}, FontColor: []int{235, 207, 139}, FontSize: 186},
 			{Text: "伯", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
 			{Text: "米", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
 			{Text: "莉亚", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
 		},
-		"yuki": {
-			{Text: "月", Position: []int{759, 63}, FontColor: []int{195, 209, 231}, FontSize: 196},
-			{Text: "代", Position: []int{948, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
-			{Text: "雪", Position: []int{1053, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
-			{Text: "", Position: []int{0, 0}, FontColor: []int{255, 255, 255}, FontSize: 1},
+		"char10": {
+			{Text: "黑", Position: []int{759, 63}, FontColor: []int{131, 143, 147}, FontSize: 196},
+			{Text: "部", Position: []int{955, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+			{Text: "奈", Position: []int{1053, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
+			{Text: "叶香", Position: []int{1197, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+		},
+		"char11": {
+			{Text: "宝", Position: []int{759, 73}, FontColor: []int{185, 124, 235}, FontSize: 186},
+			{Text: "生", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+			{Text: "玛", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
+			{Text: "格", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+		},
+		"char12": {
+			{Text: "紫", Position: []int{759, 73}, FontColor: []int{235, 75, 60}, FontSize: 186},
+			{Text: "藤", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+			{Text: "亚", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
+			{Text: "里沙", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+		},
+		"char13": {
+			{Text: "泽", Position: []int{759, 73}, FontColor: []int{251, 114, 78}, FontSize: 186},
+			{Text: "渡", Position: []int{945, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
+			{Text: "可", Position: []int{1042, 117}, FontColor: []int{255, 255, 255}, FontSize: 147},
+			{Text: "可", Position: []int{1186, 175}, FontColor: []int{255, 255, 255}, FontSize: 92},
 		},
 	}
 }
@@ -222,9 +240,17 @@ func main() {
 
 // getCharacters 获取所有角色列表
 func getCharacters(c *gin.Context) {
-	var chars []Character
-	for _, char := range characters {
-		chars = append(chars, char)
+	mu.RLock()
+	defer mu.RUnlock()
+
+	var chars []map[string]interface{}
+	i := 0
+	for id, char := range characters {
+		chars = append(chars, map[string]interface{}{
+			"id":   id,
+			"name": char.Name,
+		})
+		i++
 	}
 	c.JSON(http.StatusOK, chars)
 }
@@ -233,29 +259,40 @@ func getCharacters(c *gin.Context) {
 func getCurrentCharacter(c *gin.Context) {
 	// 总是返回默认角色，不保存状态
 	defaultCharacter := getDefaultCharacter()
+
+	mu.RLock()
 	char, exists := characters[defaultCharacter]
+	mu.RUnlock()
+
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "默认角色不存在"})
 		return
 	}
-	c.JSON(http.StatusOK, char)
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"id":   defaultCharacter,
+		"name": char.Name,
+	})
 }
 
 // getEmotions 获取角色表情列表
 func getEmotions(c *gin.Context) {
 	characterId := c.Param("characterId")
 
+	mu.RLock()
 	char, exists := characters[characterId]
+	mu.RUnlock()
+
 	if !exists {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "角色不存在"})
 		return
 	}
 
-	var emotions []Emotion
-	for i := 1; i <= char.EmotionCount; i++ {
-		emotions = append(emotions, Emotion{
-			ID:   i,
-			Name: fmt.Sprintf("表情%d", i),
+	var emotions []map[string]interface{}
+	for i, emotion := range char.Emotions {
+		emotions = append(emotions, map[string]interface{}{
+			"id":   i + 1,
+			"name": emotion.Name,
 		})
 	}
 
@@ -325,9 +362,9 @@ func generateImage(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"imageUrl": "/images/" + filename,
-		"character": characterId,  // 添加角色信息用于调试
+		"success":   true,
+		"imageUrl":  "/images/" + filename,
+		"character": characterId, // 添加角色信息用于调试
 	})
 }
 
@@ -335,18 +372,18 @@ func generateImage(c *gin.Context) {
 func getRandomCharacter() string {
 	mu.RLock()
 	defer mu.RUnlock()
-	
+
 	// 将map转换为slice以便随机选择
 	characterIds := make([]string, 0, len(characters))
 	for id := range characters {
 		characterIds = append(characterIds, id)
 	}
-	
+
 	// 随机选择一个角色
 	if len(characterIds) > 0 {
 		return characterIds[rand.Intn(len(characterIds))]
 	}
-	
+
 	// 如果没有角色，返回默认角色
 	return getDefaultCharacter()
 }
@@ -354,12 +391,12 @@ func getRandomCharacter() string {
 // createImageWithText 创建带文本的图片
 func createImageWithText(characterId, text string, emotionIndex *int, backgroundIndex *int) (image.Image, error) {
 	// 使用新的图片处理逻辑
-	
+
 	// 获取当前角色的文字配置
 	mu.RLock()
 	textConfigs := textConfigs[characterId]
 	mu.RUnlock()
-	
+
 	// 构造图片生成参数
 	params := GenerateImageParams{
 		CharacterID:     characterId,
@@ -368,12 +405,12 @@ func createImageWithText(characterId, text string, emotionIndex *int, background
 		BackgroundIndex: backgroundIndex,
 		TextConfigs:     textConfigs,
 	}
-	
+
 	// 生成图片
 	img, err := GenerateImage(params)
 	if err != nil {
 		return nil, fmt.Errorf("生成图片失败: %v", err)
 	}
-	
+
 	return img, nil
 }

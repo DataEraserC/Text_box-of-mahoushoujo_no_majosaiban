@@ -230,9 +230,9 @@
                 .then(data => {
                     // 按照固定顺序排序角色
                     const characterOrder = [
-                        'ema', 'hiro', 'sherri', 'hanna', 'anan', 
-                        'yuki', 'meruru', 'noa', 'reia', 'miria',
-                        'nanoka', 'mago', 'alisa', 'coco'
+                        'char0', 'char1', 'char2', 'char3', 'char4', 
+                        'char5', 'char6', 'char7', 'char8', 'char9',
+                        'char10', 'char11', 'char12', 'char13'
                     ];
                     
                     characters = characterOrder
@@ -261,7 +261,7 @@
             characters.forEach(character => {
                 const button = document.createElement('div');
                 button.className = 'character-button';
-                button.textContent = getCharacterDisplayName(character.id);
+                button.textContent = character.name;
                 button.dataset.id = character.id;
                 button.addEventListener('click', () => selectCharacter(character.id));
                 grid.appendChild(button);
@@ -476,24 +476,9 @@
         
         // 获取角色显示名称
         function getCharacterDisplayName(characterId) {
-            const names = {
-                'ema': '樱羽艾玛',
-                'hiro': '二阶堂希罗',
-                'sherri': '橘雪莉',
-                'hanna': '远野汉娜',
-                'anan': '夏目安安',
-                'yuki': '月代雪',
-                'meruru': '冰上梅露露',
-                'noa': '城崎诺亚',
-                'reia': '莲见蕾雅',
-                'miria': '佐伯米莉亚',
-                'nanoka': '黑部奈叶香',
-                'mago': '宝生玛格',
-                'alisa': '紫藤亚里沙',
-                'coco': '泽渡可可'
-            };
-            
-            return names[characterId] || characterId;
+            // 现在直接使用角色对象中的名称，不需要映射
+            const character = characters.find(c => c.id === characterId);
+            return character ? character.name : characterId;
         }
     </script>
 </body>
