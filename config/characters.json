@@ -1,6 +1,13 @@
 [
   {
+    "id": "char0",
     "name": "樱羽艾玛",
+    "displayName": [
+      { "text": "樱", "position": [759, 73], "fontColor": [253, 145, 175], "fontSize": 186 },
+      { "text": "羽", "position": [949, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "艾", "position": [1039, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "玛", "position": [1183, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -37,7 +44,14 @@
     ]
   },
   {
+    "id": "char1",
     "name": "二阶堂希罗",
+    "displayName": [
+      { "text": "二", "position": [759, 63], "fontColor": [239, 79, 84], "fontSize": 196 },
+      { "text": "阶堂", "position": [955, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "希", "position": [1143, 110], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "罗", "position": [1283, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -66,7 +80,14 @@
     ]
   },
   {
+    "id": "char2",
     "name": "橘雪莉",
+    "displayName": [
+      { "text": "橘", "position": [759, 73], "fontColor": [137, 177, 251], "fontSize": 186 },
+      { "text": "雪", "position": [943, 110], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "莉", "position": [1093, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "", "position": [0, 0], "fontColor": [255, 255, 255], "fontSize": 1 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -99,7 +120,14 @@
     ]
   },
   {
+    "id": "char3",
     "name": "远野汉娜",
+    "displayName": [
+      { "text": "远", "position": [759, 73], "fontColor": [169, 199, 30], "fontSize": 186 },
+      { "text": "野", "position": [945, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "汉", "position": [1042, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "娜", "position": [1186, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -124,7 +152,14 @@
     ]
   },
   {
+    "id": "char4",
     "name": "夏目安安",
+    "displayName": [
+      { "text": "夏", "position": [759, 73], "fontColor": [159, 145, 251], "fontSize": 186 },
+      { "text": "目", "position": [949, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "安", "position": [1039, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "安", "position": [1183, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -165,7 +200,14 @@
     ]
   },
   {
+    "id": "char5",
     "name": "月代雪",
+    "displayName": [
+      { "text": "月", "position": [759, 63], "fontColor": [195, 209, 231], "fontSize": 196 },
+      { "text": "代", "position": [948, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "雪", "position": [1053, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "", "position": [0, 0], "fontColor": [255, 255, 255], "fontSize": 1 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -242,7 +284,14 @@
     ]
   },
   {
+    "id": "char6",
     "name": "冰上梅露露",
+    "displayName": [
+      { "text": "冰", "position": [759, 73], "fontColor": [227, 185, 175], "fontSize": 186 },
+      { "text": "上", "position": [945, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "梅", "position": [1042, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "露露", "position": [1186, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -271,7 +320,14 @@
     ]
   },
   {
+    "id": "char7",
     "name": "城崎诺亚",
+    "displayName": [
+      { "text": "城", "position": [759, 73], "fontColor": [104, 223, 231], "fontSize": 186 },
+      { "text": "崎", "position": [945, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "诺", "position": [1042, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "亚", "position": [1186, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -300,7 +356,14 @@
     ]
   },
   {
+    "id": "char8",
     "name": "莲见蕾雅",
+    "displayName": [
+      { "text": "莲", "position": [759, 73], "fontColor": [253, 177, 88], "fontSize": 186 },
+      { "text": "见", "position": [945, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "蕾", "position": [1042, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "雅", "position": [1186, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -333,7 +396,14 @@
     ]
   },
   {
+    "id": "char9",
     "name": "佐伯米莉亚",
+    "displayName": [
+      { "text": "佐", "position": [759, 73], "fontColor": [235, 207, 139], "fontSize": 186 },
+      { "text": "伯", "position": [945, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "米", "position": [1042, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "莉亚", "position": [1186, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -354,7 +424,14 @@
     ]
   },
   {
+    "id": "char10",
     "name": "黑部奈叶香",
+    "displayName": [
+      { "text": "黑", "position": [759, 63], "fontColor": [131, 143, 147], "fontSize": 196 },
+      { "text": "部", "position": [955, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "奈", "position": [1053, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "叶香", "position": [1197, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -379,7 +456,14 @@
     ]
   },
   {
+    "id": "char11",
     "name": "宝生玛格",
+    "displayName": [
+      { "text": "宝", "position": [759, 73], "fontColor": [185, 124, 235], "fontSize": 186 },
+      { "text": "生", "position": [945, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "玛", "position": [1042, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "格", "position": [1186, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -404,7 +488,14 @@
     ]
   },
   {
+    "id": "char12",
     "name": "紫藤亚里沙",
+    "displayName": [
+      { "text": "紫", "position": [759, 73], "fontColor": [235, 75, 60], "fontSize": 186 },
+      { "text": "藤", "position": [945, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "亚", "position": [1042, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "里沙", "position": [1186, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",
@@ -433,7 +524,14 @@
     ]
   },
   {
+    "id": "char13",
     "name": "泽渡可可",
+    "displayName": [
+      { "text": "泽", "position": [759, 73], "fontColor": [251, 114, 78], "fontSize": 186 },
+      { "text": "渡", "position": [945, 175], "fontColor": [255, 255, 255], "fontSize": 92 },
+      { "text": "可", "position": [1042, 117], "fontColor": [255, 255, 255], "fontSize": 147 },
+      { "text": "可", "position": [1186, 175], "fontColor": [255, 255, 255], "fontSize": 92 }
+    ],
     "emotions": [
       {
         "name": "表情1",

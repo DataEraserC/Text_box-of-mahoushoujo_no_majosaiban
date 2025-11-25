@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"sort"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -17,8 +18,18 @@ import (
 
 // Character 角色信息
 type Character struct {
-	Name     string    `json:"name"`
-	Emotions []Emotion `json:"emotions"`
+	ID          string            `json:"id"`
+	Name        string            `json:"name"`
+	DisplayName []DisplayNamePart `json:"displayName"`
+	Emotions    []Emotion         `json:"emotions"`
+}
+
+// DisplayNamePart 角色姓名显示配置
+type DisplayNamePart struct {
+	Text      string `json:"text"`
+	Position  []int  `json:"position"`
+	FontColor []int  `json:"fontColor"`
+	FontSize  int    `json:"fontSize"`
 }
 
 // Emotion 表情信息
@@ -33,7 +44,7 @@ type Background struct {
 	Filename string `json:"filename"`
 }
 
-// TextConfig 角色文字配置
+// TextConfig 角色文字配置 (保留以确保向后兼容)
 type TextConfig struct {
 	Text      string `json:"text"`
 	Position  []int  `json:"position"`
@@ -79,34 +90,14 @@ func loadCharacters() {
 		panic(fmt.Sprintf("无法读取角色配置文件: %v", err))
 	}
 
-	var chars []map[string]interface{}
+	var chars []Character
 	if err := json.Unmarshal(file, &chars); err != nil {
 		panic(fmt.Sprintf("无法解析角色配置文件: %v", err))
 	}
 
 	characters = make(map[string]Character)
-	for i, charData := range chars {
-		name, _ := charData["name"].(string)
-		emotionsData, _ := charData["emotions"].([]interface{})
-
-		var emotions []Emotion
-		for _, eData := range emotionsData {
-			if eMap, ok := eData.(map[string]interface{}); ok {
-				emotionName, _ := eMap["name"].(string)
-				filename, _ := eMap["filename"].(string)
-				emotions = append(emotions, Emotion{
-					Name:     emotionName,
-					Filename: filename,
-				})
-			}
-		}
-
-		// 使用索引作为角色ID，以便保持向后兼容
-		characterId := fmt.Sprintf("char%d", i)
-		characters[characterId] = Character{
-			Name:     name,
-			Emotions: emotions,
-		}
+	for _, char := range chars {
+		characters[char.ID] = char
 	}
 }
 
@@ -122,7 +113,7 @@ func loadBackgrounds() {
 	}
 }
 
-// initTextConfigs 初始化文字配置
+// initTextConfigs 初始化文字配置（保留以确保向后兼容）
 func initTextConfigs() {
 	textConfigs = map[string][]TextConfig{
 		"char0": {
@@ -243,14 +234,22 @@ func getCharacters(c *gin.Context) {
 	mu.RLock()
 	defer mu.RUnlock()
 
+	// 创建一个有序的角色ID列表
+	var characterIds []string
+	for id := range characters {
+		characterIds = append(characterIds, id)
+	}
+	
+	// 按字符串排序以保证顺序稳定
+	sort.Strings(characterIds)
+
 	var chars []map[string]interface{}
-	i := 0
-	for id, char := range characters {
+	for _, id := range characterIds {
+		char := characters[id]
 		chars = append(chars, map[string]interface{}{
 			"id":   id,
 			"name": char.Name,
 		})
-		i++
 	}
 	c.JSON(http.StatusOK, chars)
 }
@@ -380,7 +379,24 @@ func createImageWithText(characterId, text string, emotionIndex *int, background
 
 	// 获取当前角色的文字配置
 	mu.RLock()
-	textConfigs := textConfigs[characterId]
+	character, exists := characters[characterId]
+	var configs []TextConfig
+	
+	// 如果角色有displayName配置，则使用它，否则使用旧的textConfigs
+	if exists && len(character.DisplayName) > 0 {
+		// 将DisplayNamePart转换为TextConfig以保持向后兼容
+		for _, part := range character.DisplayName {
+			configs = append(configs, TextConfig{
+				Text:      part.Text,
+				Position:  part.Position,
+				FontColor: part.FontColor,
+				FontSize:  part.FontSize,
+			})
+		}
+	} else {
+		// 使用旧的配置
+		configs = textConfigs[characterId]
+	}
 	mu.RUnlock()
 
 	// 构造图片生成参数
@@ -389,7 +405,7 @@ func createImageWithText(characterId, text string, emotionIndex *int, background
 		Text:            text,
 		EmotionIndex:    emotionIndex,
 		BackgroundIndex: backgroundIndex,
-		TextConfigs:     textConfigs,
+		TextConfigs:     configs,
 	}
 
 	// 生成图片

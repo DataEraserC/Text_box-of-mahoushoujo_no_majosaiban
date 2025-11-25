@@ -228,17 +228,7 @@
             fetch('/api/characters')
                 .then(response => response.json())
                 .then(data => {
-                    // 按照固定顺序排序角色
-                    const characterOrder = [
-                        'char0', 'char1', 'char2', 'char3', 'char4', 
-                        'char5', 'char6', 'char7', 'char8', 'char9',
-                        'char10', 'char11', 'char12', 'char13'
-                    ];
-                    
-                    characters = characterOrder
-                        .map(id => data.find(c => c.id === id))
-                        .filter(c => c !== undefined);
-                    
+                    characters = data;
                     renderCharacterGrid();
                 })
                 .catch(error => {
@@ -472,13 +462,6 @@
                 console.error('生成图片失败:', error);
                 resultContainer.innerHTML = '<div class="error">生成图片时发生错误</div>';
             });
-        }
-        
-        // 获取角色显示名称
-        function getCharacterDisplayName(characterId) {
-            // 现在直接使用角色对象中的名称，不需要映射
-            const character = characters.find(c => c.id === characterId);
-            return character ? character.name : characterId;
         }
     </script>
 </body>
