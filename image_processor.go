@@ -29,6 +29,7 @@ type AppConfig struct {
 		Over     []int `json:"over"`
 	} `json:"text_box"`
 	DefaultCharacter string `json:"default_character"`
+	Port             int    `json:"port"`
 }
 
 // GenerateImageParams 生成图片的参数

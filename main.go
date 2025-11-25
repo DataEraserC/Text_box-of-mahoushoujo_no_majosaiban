@@ -225,8 +225,13 @@ func main() {
 		api.POST("/generate", generateImage)
 	}
 
-	fmt.Println("服务器启动在 http://localhost:8080")
-	router.Run(":8080")
+	port := 8080
+	if appConfig.Port != 0 {
+		port = appConfig.Port
+	}
+
+	fmt.Printf("服务器启动在 http://localhost:%d\n", port)
+	router.Run(fmt.Sprintf(":%d", port))
 }
 
 // getCharacters 获取所有角色列表

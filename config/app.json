@@ -3,5 +3,6 @@
     "position": [728, 355],
     "over": [2339, 800]
   },
-  "default_character": "sherri"
+  "default_character": "sherri",
+  "port": 8080
 }
