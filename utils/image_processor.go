@@ -1,7 +1,6 @@
-package main
+package utils
 
 import (
-	"encoding/json"
 	"fmt"
 	"image"
 	"image/color"
@@ -10,91 +9,17 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
+	"mahou-textbox/config"
+	"mahou-textbox/models"
 )
-
-// TextBoxConfig 文本框坐标配置
-type TextBoxConfig struct {
-	Position [2]int // 文本框左上角坐标
-	Over     [2]int // 文本框右下角坐标
-}
-
-// AppConfig 应用配置
-type AppConfig struct {
-	TextBox struct {
-		Position []int `json:"position"`
-		Over     []int `json:"over"`
-	} `json:"text_box"`
-	DefaultCharacter string `json:"default_character"`
-	Port             int    `json:"port"`
-}
-
-// GenerateImageParams 生成图片的参数
-type GenerateImageParams struct {
-	CharacterID     string
-	Text            string
-	EmotionIndex    *int
-	BackgroundIndex *int
-	TextConfigs     []TextConfig
-}
-
-var (
-	textBoxConfig    TextBoxConfig
-	appConfig        AppConfig
-)
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-	
-	// 加载应用配置
-	loadAppConfig()
-}
-
-// loadAppConfig 加载应用配置
-func loadAppConfig() {
-	file, err := os.ReadFile("config/app.json")
-	if err != nil {
-		// 如果配置文件不存在，使用默认配置
-		textBoxConfig = TextBoxConfig{
-			Position: [2]int{728, 355},
-			Over:     [2]int{2339, 800},
-		}
-		return
-	}
-	
-	if err := json.Unmarshal(file, &appConfig); err != nil {
-		// 如果解析失败，使用默认配置
-		textBoxConfig = TextBoxConfig{
-			Position: [2]int{728, 355},
-			Over:     [2]int{2339, 800},
-		}
-		return
-	}
-	
-	// 设置文本框配置
-	textBoxConfig = TextBoxConfig{
-		Position: [2]int{appConfig.TextBox.Position[0], appConfig.TextBox.Position[1]},
-		Over:     [2]int{appConfig.TextBox.Over[0], appConfig.TextBox.Over[1]},
-	}
-}
-
-// getDefaultCharacter 获取默认角色ID
-func getDefaultCharacter() string {
-	if appConfig.DefaultCharacter != "" {
-		return appConfig.DefaultCharacter
-	}
-	return "char2" // 橘雪莉作为默认角色
-}
 
 // GenerateImage 生成完整的魔法少女裁判图片
-func GenerateImage(params GenerateImageParams) (image.Image, error) {
+func GenerateImage(params models.GenerateImageParams) (image.Image, error) {
 	// 获取角色配置
-	mu.RLock()
-	character, exists := characters[params.CharacterID]
-	mu.RUnlock()
+	character, exists := config.Characters[params.CharacterID]
 	
 	if !exists {
 		return nil, fmt.Errorf("角色 %s 不存在", params.CharacterID)
@@ -111,8 +36,8 @@ func GenerateImage(params GenerateImageParams) (image.Image, error) {
 	
 	// 使用指定或随机的背景图片
 	var backgroundPath string
-	if backgroundIndex > 0 && backgroundIndex <= len(backgrounds) {
-		backgroundPath = filepath.Join(wd, backgrounds[backgroundIndex-1].Filename)
+	if backgroundIndex > 0 && backgroundIndex <= len(config.Backgrounds) {
+		backgroundPath = filepath.Join(wd, config.Backgrounds[backgroundIndex-1].Filename)
 	} else {
 		backgroundPath = filepath.Join(wd, "backgrounds", fmt.Sprintf("bg%d.png", backgroundIndex))
 	}
@@ -187,12 +112,12 @@ func getRandomEmotionIndex(emotionCount int, specifiedIndex *int) int {
 
 // getRandomBackgroundIndex 获取随机或指定的背景索引
 func getRandomBackgroundIndex(specifiedIndex *int) int {
-	if specifiedIndex != nil && *specifiedIndex >= 1 && *specifiedIndex <= len(backgrounds) {
+	if specifiedIndex != nil && *specifiedIndex >= 1 && *specifiedIndex <= len(config.Backgrounds) {
 		return *specifiedIndex
 	}
 	
 	// 随机选择一个背景
-	return rand.Intn(len(backgrounds)) + 1
+	return rand.Intn(len(config.Backgrounds)) + 1
 }
 
 // openImage 打开图片文件
@@ -220,10 +145,10 @@ func createDefaultImage(width, height int) image.Image {
 }
 
 // drawTextOnImage 在图片上绘制文本
-func drawTextOnImage(img *image.RGBA, text, fontFile string, textConfigs []TextConfig) error {
+func drawTextOnImage(img *image.RGBA, text, fontFile string, textConfigs []models.TextConfig) error {
 	// 获取文本框区域
-	textBoxWidth := textBoxConfig.Over[0] - textBoxConfig.Position[0]
-	textBoxHeight := textBoxConfig.Over[1] - textBoxConfig.Position[1]
+	textBoxWidth := config.TextBoxConfig.Over[0] - config.TextBoxConfig.Position[0]
+	textBoxHeight := config.TextBoxConfig.Over[1] - config.TextBoxConfig.Position[1]
 
 	// 加载字体并搜索最佳字体大小
 	bestFontSize := float64(1)
@@ -270,10 +195,10 @@ func drawTextOnImage(img *image.RGBA, text, fontFile string, textConfigs []TextC
 	_ = len(lines) * lineHeight
 
 	// 垂直顶部对齐起始位置 (与Python版本一致)
-	startY := textBoxConfig.Position[1]
+	startY := config.TextBoxConfig.Position[1]
 
 	// 水平左对齐起始位置 (与Python版本一致)
-	startX := textBoxConfig.Position[0]
+	startX := config.TextBoxConfig.Position[0]
 
 	// 绘制每一行文本
 	for i, line := range lines {

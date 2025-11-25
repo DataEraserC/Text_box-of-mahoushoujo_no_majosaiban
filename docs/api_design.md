@@ -1,81 +1,92 @@
-# Go Web API Design
+# 魔法少女裁判文本框生成器 API 文档
 
 ## 功能概述
 
-将原有Python程序重构为Go Web应用，提供RESTful API供前端调用，去除剪贴板等与操作系统相关的功能。
+本项目是一个基于Go语言实现的Web应用，提供RESTful API供前端调用，用于生成魔法少女裁判风格的文本框图片。
 
 ## API 接口设计
 
 ### 1. 获取角色列表
 ```
 GET /api/characters
-Response:
+
+响应示例:
 [
   {
-    "id": "ema",
-    "name": "樱羽艾玛",
-    "emotion_count": 8,
-    "font": "font3.ttf"
+    "id": "char0",
+    "name": "樱羽艾玛"
   },
-  ...
+  {
+    "id": "char1",
+    "name": "二阶堂希罗"
+  }
 ]
 ```
 
 ### 2. 获取默认角色
 ```
 GET /api/characters/current
-Response:
+
+响应示例:
 {
-  "id": "sherri",
-  "name": "橘雪莉",
-  "emotion_count": 7,
-  "font": "font3.ttf"
+  "id": "char2",
+  "name": "橘雪莉"
 }
 ```
 
 ### 3. 生成图片
 ```
 POST /api/generate
-Request:
+
+请求体示例:
 {
-  "type": "text",                 // 类型：目前只支持text
-  "content": "示例文本内容",       // 文本内容
-  "textInput": "输入的文本内容",    // 用户输入的文本（冗余字段，与content相同）
-  "characterId": "sherri",        // 角色ID（可选，默认为配置文件中的默认角色，可设置为"random"表示随机）
+  "type": "text",
+  "content": "示例文本内容",
+  "textInput": "输入的文本内容",
+  "characterId": "char2",        // 角色ID（可选，默认为配置文件中的默认角色，可设置为"random"表示随机）
   "emotionIndex": 1,              // 表情索引（可选，默认随机）
   "backgroundIndex": 1            // 背景索引（可选，默认随机）
 }
 
-Response:
+响应示例:
 {
   "success": true,
-  "imageUrl": "/images/result_xxxxxx.png"
+  "imageData": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+  "character": "char2"
 }
 ```
 
 ### 4. 获取角色表情列表
 ```
 GET /api/characters/{characterId}/emotions
-Response:
+
+响应示例:
 [
   {
     "id": 1,
     "name": "表情1"
   },
-  ...
+  {
+    "id": 2,
+    "name": "表情2"
+  }
 ]
 ```
 
 ### 5. 获取背景列表
 ```
 GET /api/backgrounds
-Response:
+
+响应示例:
 [
   {
-    "id": 1,
-    "name": "背景1"
+    "name": "背景1",
+    "filename": "backgrounds/bg1.png"
   },
-  ...
+  {
+    "name": "背景2",
+    "filename": "backgrounds/bg2.png"
+  }
 ]
 ```
 
@@ -91,7 +102,7 @@ Response:
 
 项目使用JSON格式的配置文件来管理各种设置：
 
-1. `config/app.json` - 应用基本配置，包括文本框坐标和默认角色
+1. `config/app.json` - 应用基本配置，包括文本框坐标、默认角色和端口号
 2. `config/characters.json` - 角色列表配置
 3. `config/backgrounds.json` - 背景列表配置
 
