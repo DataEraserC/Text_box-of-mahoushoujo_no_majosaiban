@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -8,9 +10,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"path/filepath"
 	"sync"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -330,16 +330,6 @@ func generateImage(c *gin.Context) {
 		return
 	}
 
-	// 创建输出目录
-	outputDir := "./images"
-	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-		os.Mkdir(outputDir, 0755)
-	}
-
-	// 生成文件名
-	filename := fmt.Sprintf("result_%d_%d.png", os.Getpid(), time.Now().UnixNano())
-	filepath := filepath.Join(outputDir, filename)
-
 	// 生成图片
 	img, err := createImageWithText(characterId, req.TextInput, req.EmotionIndex, req.BackgroundIndex)
 	if err != nil {
@@ -347,23 +337,19 @@ func generateImage(c *gin.Context) {
 		return
 	}
 
-	// 保存图片
-	file, err := os.Create(filepath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "保存图片失败: " + err.Error()})
-		return
-	}
-	defer file.Close()
-
-	// 编码并保存PNG图片
-	if err := png.Encode(file, img); err != nil {
+	// 将图片编码为base64
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "编码图片失败: " + err.Error()})
 		return
 	}
 
+	// 将图片数据转换为base64编码
+	imgBase64 := base64.StdEncoding.EncodeToString(buf.Bytes())
+
 	c.JSON(http.StatusOK, gin.H{
 		"success":   true,
-		"imageUrl":  "/images/" + filename,
+		"imageData": "data:image/png;base64," + imgBase64,
 		"character": characterId, // 添加角色信息用于调试
 	})
 }

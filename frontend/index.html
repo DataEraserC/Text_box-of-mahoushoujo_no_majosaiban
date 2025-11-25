@@ -461,8 +461,8 @@
                 if (data.success) {
                     // 显示生成的图片
                     resultContainer.innerHTML = `
-                        <img src="${data.imageUrl}" alt="生成的图片">
-                        <p><a href="${data.imageUrl}" download>下载图片</a></p>
+                        <img src="${data.imageData}" alt="生成的图片">
+                        <p><a href="${data.imageData}" download="魔法少女裁判.png">下载图片</a></p>
                     `;
                 } else {
                     resultContainer.innerHTML = `<div class="error">生成失败: ${data.message}</div>`;
